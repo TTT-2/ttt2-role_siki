@@ -89,6 +89,10 @@ if SERVER then
             if (target:Health() - dmginfo:GetDamage()) <= 0 and hook.Run("TTT2_SIKI_CanAttackerSidekick", attacker, target) then
                 dmginfo:ScaleDamage(0)
                 
+                target:Freeze(true)
+                
+                timer.Create("FreezeSidekickForInit", 1, 1, function() target:Freeze(false) end)
+                
                 AddSidekick(target, attacker)
         
                 HealPlayer(target)
