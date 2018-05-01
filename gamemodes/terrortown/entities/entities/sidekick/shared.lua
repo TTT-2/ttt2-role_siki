@@ -46,9 +46,9 @@ function HealPlayer(ply)
 end
     
 hook.Add("TTT2_SearchBodyString", "SikiSBS", function(ply)
-    local bindedPlayer = player.GetBySteamID(ply:GetNWString("binded_sidekick"))
+    local bindedPlayer = ply:GetNWEntity("binded_sidekick")
     
-    if bindedPlayer and ply:GetRole() == ROLES.SIDEKICK.index then
+    if bindedPlayer and IsValid(bindedPlayer) and bindedPlayer:IsPlayer() and ply:GetRole() == ROLES.SIDEKICK.index then
         return bindedPlayer:GetRoleData().abbr
     end
 end)
@@ -61,7 +61,7 @@ if SERVER then
     function AddSidekick(target, attacker)
         BINDED_PLAYER[target] = attacker
                 
-        attacker:SetNWString("binded_sidekick", target:SteamID())
+        attacker:SetNWEntity("binded_sidekick", target)
         target:UpdateRole(ROLES.SIDEKICK.index)
         
         SendFullStateUpdate()
@@ -107,14 +107,10 @@ if SERVER then
     hook.Add("PlayerDeath", "SikiPlayerDeath", function(victim, infl, attacker)
         if not IsValid(victim) or not victim:IsPlayer() then return end
         
-        local siki = victim:GetNWString("binded_sidekick")
+        local siki = victim:GetNWEntity("binded_sidekick")
         
-        if siki then
-            siki = player.GetBySteamID(siki)
-            
-            if IsValid(siki) and siki:IsPlayer() then
-                siki:Kill()
-            end
+        if siki and IsValid(siki) and siki:IsPlayer() then
+            siki:Kill()
         end
     end)
     
@@ -125,11 +121,11 @@ if SERVER then
             if siki == discPly then
                 tmpSK = siki
                 
-                ply:SetNWString("binded_sidekick", nil)
+                ply:SetNWEntity("binded_sidekick", nil)
             elseif ply == discPly then
                 tmpSK = siki
                 
-                ply:SetNWString("binded_sidekick", nil)
+                ply:SetNWEntity("binded_sidekick", nil)
                 siki:Kill()
             end
             
@@ -145,7 +141,7 @@ if SERVER then
     
     hook.Add("TTTBeginRound", "SikiBeginRound", function()
         for siki, ply in pairs(BINDED_PLAYER) do
-            ply:SetNWString("binded_sidekick", nil)
+            ply:SetNWEntity("binded_sidekick", nil)
         end
         
         BINDED_PLAYER = {}
@@ -153,7 +149,7 @@ if SERVER then
     
     hook.Add("TTTEndRound", "SikiEndRound", function()
         for siki, ply in pairs(BINDED_PLAYER) do
-            ply:SetNWString("binded_sidekick", nil)
+            ply:SetNWEntity("binded_sidekick", nil)
         end
         
         BINDED_PLAYER = {}
@@ -201,11 +197,13 @@ if SERVER then
     end)
     
     hook.Add("TTT2_CanTransferToPlayer", "SikiCTTP", function(ply, target)
-        local bindedPlayer = BINDED_PLAYER[ply]
-    
-        -- just the sidekick can transfer to his mate, not vice-versa
-        if bindedPlayer and IsValid(bindedPlayer) and ply:GetRole() == ROLES.SIDEKICK.index then
-            return bindedPlayer == target
+        if ply:GetRole() == ROLES.SIDEKICK.index then
+            local bindedPlayer = BINDED_PLAYER[ply]
+        
+            -- just the sidekick can transfer to his mate, not vice-versa
+            if bindedPlayer and IsValid(bindedPlayer) then
+                return bindedPlayer == target
+            end
         end
     end)
 else -- CLIENT
@@ -214,35 +212,43 @@ else -- CLIENT
     end)
 
     hook.Add("TTT2_CanTransferToPlayer", "SikiCTTP", function(target)
-        local bindedPlayer = player.GetBySteamID(LocalPlayer():GetNWString("binded_sidekick"))
-    
-        -- just the sidekick can transfer to his mate, not vice-versa
-        if bindedPlayer and LocalPlayer():GetRole() == ROLES.SIDEKICK.index then
-            return bindedPlayer == target
+        if LocalPlayer():GetRole() == ROLES.SIDEKICK.index then
+            local bindedPlayer = LocalPlayer():GetNWEntity("binded_sidekick")
+        
+            -- just the sidekick can transfer to his mate, not vice-versa
+            if bindedPlayer and IsValid(bindedPlayer) and bindedPlayer:IsPlayer() then
+                return bindedPlayer == target
+            end
         end
     end)
     
     hook.Add("TTT2_SearchRoleMaterialString", "SikiSRMS", function()
-        local bindedPlayer = player.GetBySteamID(LocalPlayer():GetNWString("binded_sidekick"))
-        
-        if bindedPlayer and LocalPlayer():GetRole() == ROLES.SIDEKICK.index then
-            return bindedPlayer:GetRoleData().abbr
+        if LocalPlayer():GetRole() == ROLES.SIDEKICK.index then
+            local bindedPlayer = LocalPlayer():GetNWEntity("binded_sidekick")
+            
+            if bindedPlayer and IsValid(bindedPlayer) and bindedPlayer:IsPlayer() then
+                return bindedPlayer:GetRoleData().abbr
+            end
         end
     end)
     
     hook.Add("TTT2_GetIconRoleIndex", "SikiGIRI", function()
-        local bindedPlayer = player.GetBySteamID(LocalPlayer():GetNWString("binded_sidekick"))
-        
-        if bindedPlayer and LocalPlayer():GetRole() == ROLES.SIDEKICK.index then
-            return bindedPlayer:GetRole()
+        if LocalPlayer():GetRole() == ROLES.SIDEKICK.index then
+            local bindedPlayer = LocalPlayer():GetNWEntity("binded_sidekick")
+            
+            if bindedPlayer and IsValid(bindedPlayer) and bindedPlayer:IsPlayer() then
+                return bindedPlayer:GetRole()
+            end
         end
     end)
     
     hook.Add("PreDrawHalos", "AddSerialkillerHalos", function()
-	    local bindedPlayer = player.GetBySteamID(LocalPlayer():GetNWString("binded_sidekick"))
-        
-        if bindedPlayer and LocalPlayer():GetRole() == ROLES.SIDEKICK.index then
-	        halo.Add(bindedPlayer, bindedPlayer:GetRoleData().color, 0, 0, 2, true, true)
-	    end
+        if LocalPlayer():GetRole() == ROLES.SIDEKICK.index then
+            local bindedPlayer = LocalPlayer():GetNWEntity("binded_sidekick")
+            
+            if bindedPlayer and IsValid(bindedPlayer) and bindedPlayer:IsPlayer() then
+                halo.Add(bindedPlayer, bindedPlayer:GetRoleData().color, 0, 0, 2, true, true)
+            end
+        end
 	end)
 end
