@@ -170,9 +170,7 @@ if SERVER then
         end
     end)
 
-    hook.Add("TTT2_ScoringGettingRole", "SikiSGR", function(steamid)
-        local ply = player.GetBySteamID(steamid)
-        
+    hook.Add("TTT2_ScoringGettingRole", "SikiSGR", function(ply)
         if IsValid(ply) and ply:GetRole() == ROLES.SIDEKICK.index then
             local tly = BINDED_PLAYER[ply]
             
