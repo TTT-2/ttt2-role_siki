@@ -89,9 +89,15 @@ if SERVER then
             if (target:Health() - dmginfo:GetDamage()) <= 0 and hook.Run("TTT2_SIKI_CanAttackerSidekick", attacker, target) then
                 dmginfo:ScaleDamage(0)
                 
-                target:Freeze(true)
-                
-                timer.Create("FreezeSidekickForInit", 1, 1, function() target:Freeze(false) end)
+                local tName = "FreezeSidekickDeagleForInit_" .. target:SteamID()
+                    
+                if not timer.Exists(tName)
+                    target:Freeze(true)
+                    
+                    timer.Create(tName, 1, 1, function() 
+                        target:Freeze(false)
+                    end)
+                end
                 
                 AddSidekick(target, attacker)
         
