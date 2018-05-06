@@ -91,7 +91,7 @@ if SERVER then
                 
                 local tName = "FreezeSidekickDeagleForInit_" .. target:SteamID()
                     
-                if not timer.Exists(tName)
+                if not timer.Exists(tName) then
                     target:Freeze(true)
                     
                     timer.Create(tName, 1, 1, function() 
