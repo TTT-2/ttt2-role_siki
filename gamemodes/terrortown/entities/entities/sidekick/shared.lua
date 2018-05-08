@@ -226,9 +226,9 @@ else -- CLIENT
         end
     end)
     
-    hook.Add("TTT2_SearchRoleMaterialString", "SikiSRMS", function()
-        if LocalPlayer():GetRole() == ROLES.SIDEKICK.index then
-            local bindedPlayer = LocalPlayer():GetNWEntity("binded_sidekick")
+    hook.Add("TTT2_SearchRoleMaterialString", "SikiSRMS", function(ply, role)
+        if role == ROLES.SIDEKICK.index then
+            local bindedPlayer = ply:GetNWEntity("binded_sidekick")
             
             if bindedPlayer and IsValid(bindedPlayer) and bindedPlayer:IsPlayer() then
                 return bindedPlayer:GetRoleData().abbr
@@ -236,9 +236,9 @@ else -- CLIENT
         end
     end)
     
-    hook.Add("TTT2_GetIconRoleIndex", "SikiGIRI", function()
-        if LocalPlayer():GetRole() == ROLES.SIDEKICK.index then
-            local bindedPlayer = LocalPlayer():GetNWEntity("binded_sidekick")
+    hook.Add("TTT2_GetIconRoleIndex", "SikiGIRI", function(ent)
+        if ent:GetRole() == ROLES.SIDEKICK.index then
+            local bindedPlayer = ent:GetNWEntity("binded_sidekick")
             
             if bindedPlayer and IsValid(bindedPlayer) and bindedPlayer:IsPlayer() then
                 return bindedPlayer:GetRole()
@@ -246,6 +246,7 @@ else -- CLIENT
         end
     end)
     
+    --[[
     hook.Add("PreDrawHalos", "AddSerialkillerHalos", function()
         if LocalPlayer():GetRole() == ROLES.SIDEKICK.index then
             local bindedPlayer = LocalPlayer():GetNWEntity("binded_sidekick")
@@ -255,4 +256,15 @@ else -- CLIENT
             end
         end
 	end)
+    ]]--
+    
+    --[[
+    hook.Add("HUDDrawTargetCircleTex", "DrawSikiHUDCircle", function(ply)
+        local client = LocalPlayer()
+    
+        if BINDED_PLAYER[ply] == client or BINDED_PLAYER[client] == ply then
+            return true
+        end
+    end)
+    ]]--
 end
