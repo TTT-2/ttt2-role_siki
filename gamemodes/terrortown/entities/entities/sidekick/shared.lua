@@ -25,31 +25,33 @@ AddCustomRole("SIDEKICK", { -- first param is access for ROLES array => ROLES.SI
 })
 
 -- if sync of roles has finished
-hook.Add("TTT2_FinishedSync", "SikiInitT", function(ply, first)
-    if CLIENT and first then -- just on client and first init !
+if CLIENT then
+    hook.Add("TTT2_FinishedSync", "SikiInitT", function(ply, first)
+        if first then -- just on client and first init !
 
-		-- setup here is not necessary but if you want to access the role data, you need to start here
-		-- setup basic translation !
-		LANG.AddToLanguage("English", ROLES.SIDEKICK.name, "Sidekick")
-		LANG.AddToLanguage("English", "target_" .. ROLES.SIDEKICK.name, "Sidekick")
-		
-        ---------------------------------
+            -- setup here is not necessary but if you want to access the role data, you need to start here
+            -- setup basic translation !
+            LANG.AddToLanguage("English", ROLES.SIDEKICK.name, "Sidekick")
+            LANG.AddToLanguage("English", "target_" .. ROLES.SIDEKICK.name, "Sidekick")
+            
+            ---------------------------------
 
-		-- maybe this language as well...
-		LANG.AddToLanguage("Deutsch", ROLES.SIDEKICK.name, "Sidekick")
-		LANG.AddToLanguage("Deutsch", "target_" .. ROLES.SIDEKICK.name, "Sidekick")
-    end
-end)
+            -- maybe this language as well...
+            LANG.AddToLanguage("Deutsch", ROLES.SIDEKICK.name, "Sidekick")
+            LANG.AddToLanguage("Deutsch", "target_" .. ROLES.SIDEKICK.name, "Sidekick")
+        end
+    end)
+end
 
 function HealPlayer(ply)
     ply:SetHealth(ply:GetMaxHealth())
 end
     
-hook.Add("TTT2_SearchBodyString", "SikiSBS", function(ply)
+hook.Add("TTT2_SearchBodyRole", "SikiSBS", function(ply)
     local bindedPlayer = ply:GetNWEntity("binded_sidekick")
     
     if bindedPlayer and IsValid(bindedPlayer) and bindedPlayer:IsPlayer() and ply:GetRole() == ROLES.SIDEKICK.index then
-        return bindedPlayer:GetRoleData().abbr
+        return bindedPlayer:GetRoleData().index
     end
 end)
 
@@ -60,7 +62,7 @@ if SERVER then
     
     function AddSidekick(target, attacker)
         BINDED_PLAYER[target] = attacker
-                
+        
         attacker:SetNWEntity("binded_sidekick", target)
         target:UpdateRole(ROLES.SIDEKICK.index)
         
