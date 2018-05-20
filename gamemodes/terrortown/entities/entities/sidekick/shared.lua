@@ -33,12 +33,14 @@ if CLIENT then
             -- setup basic translation !
             LANG.AddToLanguage("English", ROLES.SIDEKICK.name, "Sidekick")
             LANG.AddToLanguage("English", "target_" .. ROLES.SIDEKICK.name, "Sidekick")
+            LANG.AddToLanguage("English", "ttt2_desc_" .. ROLES.SIDEKICK.name, [[You need to win with your mate!]])
             
             ---------------------------------
 
             -- maybe this language as well...
             LANG.AddToLanguage("Deutsch", ROLES.SIDEKICK.name, "Sidekick")
             LANG.AddToLanguage("Deutsch", "target_" .. ROLES.SIDEKICK.name, "Sidekick")
+            LANG.AddToLanguage("Deutsch", "ttt2_desc_" .. ROLES.SIDEKICK.name, [[Du musst mit deinem Mate gewinnen!]])
         end
     end)
 end
@@ -57,6 +59,7 @@ end)
 
 if SERVER then
     util.AddNetworkString("TTT_HealPlayer")
+    util.AddNetworkString("TTT_SendMateRole")
 
     BINDED_PLAYER = {}
     
@@ -64,9 +67,19 @@ if SERVER then
         BINDED_PLAYER[target] = attacker
         
         attacker:SetNWEntity("binded_sidekick", target)
+        
         target:UpdateRole(ROLES.SIDEKICK.index)
+        target:SetDefaultCredits()
         
         SendFullStateUpdate()
+    end
+    
+    function SendMateRole(siki, mate)
+        siki.mateRole = mate.mateRole or mate:GetRole() -- if mate it sidekick too, give him the role of its mate
+        
+        net.Start("TTT_SendMateRole")
+        net.WriteUInt(siki.mateRole - 1, ROLE_BITS)
+        net.Send(siki)
     end
     
     hook.Add("TTT2_SendFullStateUpdate", "SikiFullStateUpdate", function()
@@ -116,10 +129,13 @@ if SERVER then
         if not IsValid(victim) or not victim:IsPlayer() then return end
         
         local siki = victim:GetNWEntity("binded_sidekick")
+        SendMateRole(siki, victim)
         
+        --[[
         if siki and IsValid(siki) and siki:IsPlayer() then
             siki:Kill()
         end
+        ]]--
     end)
     
     hook.Add("PlayerDisconnected", "SikiPlyDisconnected", function(discPly)
@@ -134,7 +150,8 @@ if SERVER then
                 tmpSK = siki
                 
                 ply:SetNWEntity("binded_sidekick", nil)
-                siki:Kill()
+                SendMateRole(siki, ply)
+                --siki:Kill()
             end
             
             if tmpSK then
@@ -149,6 +166,8 @@ if SERVER then
     
     hook.Add("TTTBeginRound", "SikiBeginRound", function()
         for siki, ply in pairs(BINDED_PLAYER) do
+            siki.mateRole = nil
+            
             ply:SetNWEntity("binded_sidekick", nil)
         end
         
@@ -156,12 +175,31 @@ if SERVER then
     end)
     
     hook.Add("TTTEndRound", "SikiEndRound", function()
-        for siki, ply in pairs(BINDED_PLAYER) do
+        for _, ply in pairs(BINDED_PLAYER) do
             ply:SetNWEntity("binded_sidekick", nil)
         end
         
         BINDED_PLAYER = {}
     end)
+
+	hook.Add("TTT2_ModifyWinningAlives", "SidekickModifyWinningAlives", function(alive)
+		for _, ply in pairs(player.GetAll()) do
+			if ply:GetRole() == ROLES.SIDEKICK.index and ply:IsActive() then
+                local role
+                local tly = BINDED_PLAYER[ply]
+                
+                if tly and IsValid(tly) then
+                    role = tly:GetRole()
+                end
+                
+                role = ply.mateRole or role
+                
+                if role then
+                    alive[role] = true
+                end
+			end
+		end
+	end)
     
     hook.Add("TTT2_PostPlayerCanHearPlayersVoice", "SikiPPCHPV", function(listener, speaker)
         if BINDED_PLAYER[listener] == speaker or BINDED_PLAYER[speaker] == listener then
@@ -183,8 +221,10 @@ if SERVER then
             local tly = BINDED_PLAYER[ply]
             
             if tly and IsValid(tly) then
-                return tly:GetRole()
+                return ply.mateRole or tly:GetRole()
             end
+            
+            return ply.mateRole
         end
         
         return ROLES.SIDEKICK.index
@@ -195,8 +235,10 @@ if SERVER then
             local tly = BINDED_PLAYER[ply]
             
             if tly and IsValid(tly) then
-                return tly:GetRoleData().team
+                return ply.mateRole and GetRoleByIndex(ply.mateRole).team or tly:GetRoleData().team
             end
+            
+            return ply.mateRole and GetRoleByIndex(ply.mateRole).team
         end
         
         return ROLES.SIDEKICK.team
@@ -216,6 +258,16 @@ else -- CLIENT
     net.Receive("TTT_HealPlayer", function()
         HealPlayer(LocalPlayer())
     end)
+    
+    net.Receive("TTT_SendMateRole", function()
+        local role = net.ReadUInt(ROLE_BITS) + 1
+        
+        LocalPlayer().mateRole = role
+    end)
+    
+    hook.Add("TTTBeginRound", "SikiBeginRound", function()
+        LocalPlayer().mateRole = nil
+    end)
 
     hook.Add("TTT2_CanTransferToPlayer", "SikiCTTP", function(target)
         if LocalPlayer():GetRole() == ROLES.SIDEKICK.index then
@@ -233,18 +285,22 @@ else -- CLIENT
             local bindedPlayer = ply:GetNWEntity("binded_sidekick")
             
             if bindedPlayer and IsValid(bindedPlayer) and bindedPlayer:IsPlayer() then
-                return bindedPlayer:GetRoleData().abbr
+                return ply.mateRole and GetRoleByIndex(ply.mateRole).abbr or bindedPlayer:GetRoleData().abbr
             end
+            
+            return ply.mateRole and GetRoleByIndex(ply.mateRole).abbr
         end
     end)
     
-    hook.Add("TTT2_GetIconRoleIndex", "SikiGIRI", function(ent)
-        if ent:GetRole() == ROLES.SIDEKICK.index then
-            local bindedPlayer = ent:GetNWEntity("binded_sidekick")
+    hook.Add("TTT2_GetIconRoleIndex", "SikiGIRI", function(ply)
+        if ply:GetRole() == ROLES.SIDEKICK.index then
+            local bindedPlayer = ply:GetNWEntity("binded_sidekick")
             
             if bindedPlayer and IsValid(bindedPlayer) and bindedPlayer:IsPlayer() then
-                return bindedPlayer:GetRole()
+                return ply.mateRole or bindedPlayer:GetRole()
             end
+            
+            return ply.mateRole
         end
     end)
     
