@@ -75,6 +75,10 @@ if SERVER then
     end
     
     function SendMateRole(siki, mate)
+        if not IsValid(siki) or not siki:IsPlayer() then return end
+        
+        if not IsValid(mate) or not mate:IsPlayer() then return end
+    
         siki.mateRole = mate.mateRole or mate:GetRole() -- if mate it sidekick too, give him the role of its mate
         
         net.Start("TTT_SendMateRole")
@@ -129,6 +133,9 @@ if SERVER then
         if not IsValid(victim) or not victim:IsPlayer() then return end
         
         local siki = victim:GetNWEntity("binded_sidekick")
+        
+        if not IsValid(siki) or not siki:IsPlayer() then return end
+        
         SendMateRole(siki, victim)
         
         --[[
@@ -150,8 +157,11 @@ if SERVER then
                 tmpSK = siki
                 
                 ply:SetNWEntity("binded_sidekick", nil)
-                SendMateRole(siki, ply)
-                --siki:Kill()
+        
+                if IsValid(siki) and siki:IsPlayer() then
+                    SendMateRole(siki, ply)
+                    --siki:Kill()
+                end
             end
             
             if tmpSK then
