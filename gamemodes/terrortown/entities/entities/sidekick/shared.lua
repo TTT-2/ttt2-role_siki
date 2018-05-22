@@ -278,10 +278,24 @@ else -- CLIENT
     hook.Add("TTTBeginRound", "SikiBeginRound", function()
         LocalPlayer().mateRole = nil
     end)
+    
+    hook.Add("TTT2_PreventAccessShop", "SikiPreventShop", function(ply)
+        -- prevent sidekick of serialkiller is able to shop
+        if ROLES.SERIALKILLER and ply:GetRole() == ROLES.SIDEKICK.index then
+            local bindedPlayer = ply:GetNWEntity("binded_sidekick")
+        
+            -- just the sidekick can transfer to his mate, not vice-versa
+            if bindedPlayer and IsValid(bindedPlayer) and bindedPlayer:IsPlayer() and bindedPlayer:GetRole() == ROLES.SERIALKILLER.index then
+                return true
+            end
+        end
+    end)
 
     hook.Add("TTT2_CanTransferToPlayer", "SikiCTTP", function(target)
-        if LocalPlayer():GetRole() == ROLES.SIDEKICK.index then
-            local bindedPlayer = LocalPlayer():GetNWEntity("binded_sidekick")
+        local client = LocalPlayer()
+    
+        if client:GetRole() == ROLES.SIDEKICK.index then
+            local bindedPlayer = client:GetNWEntity("binded_sidekick")
         
             -- just the sidekick can transfer to his mate, not vice-versa
             if bindedPlayer and IsValid(bindedPlayer) and bindedPlayer:IsPlayer() then
