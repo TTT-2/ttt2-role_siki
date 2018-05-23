@@ -1,8 +1,24 @@
 AddCSLuaFile()
 
+local sikiMat
+local indicator_siki_col
+
+local plymeta = FindMetaTable("Player")
+if not plymeta then return end
+
+function plymeta:IsSidekick()
+	return self:GetNWEntity("binded_sidekick") ~= nil
+end
+
+function plymeta:GetSidekickMate()
+	return self:GetNWEntity("binded_sidekick")
+end
+
 if SERVER then
-   resource.AddFile("materials/vgui/ttt/icon_siki.vmt")
-   resource.AddFile("materials/vgui/ttt/sprite_siki.vmt")
+	resource.AddFile("materials/vgui/ttt/icon_siki.vmt")
+	resource.AddFile("materials/vgui/ttt/sprite_siki.vmt")
+else
+	local indicator_siki_col = Color(255, 255, 255, 130)
 end
 
 -- important to add roles with this function,
@@ -28,6 +44,7 @@ AddCustomRole("SIDEKICK", { -- first param is access for ROLES array => ROLES.SI
 if CLIENT then
     hook.Add("TTT2_FinishedSync", "SikiInitT", function(ply, first)
         if first then -- just on client and first init !
+			sikiMat = Material("vgui/ttt/sprite_" .. ROLES.SIDEKICK.abbr)
 
             -- setup here is not necessary but if you want to access the role data, you need to start here
             -- setup basic translation !
@@ -50,9 +67,11 @@ function HealPlayer(ply)
 end
     
 hook.Add("TTT2_SearchBodyRole", "SikiSBS", function(ply)
-    local bindedPlayer = ply:GetNWEntity("binded_sidekick")
+	if ply:GetRole() ~= ROLES.SIDEKICK.index then return end
+
+    local bindedPlayer = ply:GetSidekickMate()
     
-    if bindedPlayer and IsValid(bindedPlayer) and bindedPlayer:IsPlayer() and ply:GetRole() == ROLES.SIDEKICK.index then
+    if bindedPlayer and IsValid(bindedPlayer) and bindedPlayer:IsPlayer() then
         return bindedPlayer:GetRoleData().index
     end
 end)
@@ -64,6 +83,8 @@ if SERVER then
     BINDED_PLAYER = {}
     
     function AddSidekick(target, attacker)
+		if BINDED_PLAYER[target] then return end
+	
         BINDED_PLAYER[target] = attacker
         
         attacker:SetNWEntity("binded_sidekick", target)
@@ -79,7 +100,7 @@ if SERVER then
         
         if not IsValid(mate) or not mate:IsPlayer() then return end
     
-        siki.mateRole = mate.mateRole or mate:GetRole() -- if mate it sidekick too, give him the role of its mate
+        siki.mateRole = mate.mateRole or mate:GetRole() -- if mate is sidekick too, give him the role of its mate
         
         net.Start("TTT_SendMateRole")
         net.WriteUInt(siki.mateRole - 1, ROLE_BITS)
@@ -108,7 +129,7 @@ if SERVER then
             if (target:Health() - dmginfo:GetDamage()) <= 0 and hook.Run("TTT2_SIKI_CanAttackerSidekick", attacker, target) then
                 dmginfo:ScaleDamage(0)
                 
-                local tName = "FreezeSidekickDeagleForInit_" .. target:SteamID()
+                local tName = "FreezeSidekickForInit_" .. target:SteamID()
                     
                 if not timer.Exists(tName) then
                     target:Freeze(true)
@@ -137,12 +158,6 @@ if SERVER then
         if not IsValid(siki) or not siki:IsPlayer() then return end
         
         SendMateRole(siki, victim)
-        
-        --[[
-        if siki and IsValid(siki) and siki:IsPlayer() then
-            siki:Kill()
-        end
-        ]]--
     end)
     
     hook.Add("PlayerDisconnected", "SikiPlyDisconnected", function(discPly)
@@ -160,7 +175,6 @@ if SERVER then
         
                 if IsValid(siki) and siki:IsPlayer() then
                     SendMateRole(siki, ply)
-                    --siki:Kill()
                 end
             end
             
@@ -174,7 +188,7 @@ if SERVER then
         end
     end)
     
-    hook.Add("TTTBeginRound", "SikiBeginRound", function()
+    hook.Add("TTTPrepareRound", "SikiBeginRound", function()
         for siki, ply in pairs(BINDED_PLAYER) do
             siki.mateRole = nil
             
@@ -230,8 +244,8 @@ if SERVER then
         if IsValid(ply) and ply:GetRole() == ROLES.SIDEKICK.index then
             local tly = BINDED_PLAYER[ply]
             
-            if tly and IsValid(tly) then
-                return ply.mateRole or tly:GetRole()
+            if tly and IsValid(tly) and not ply.mateRole then
+                return tly:GetRole()
             end
             
             return ply.mateRole
@@ -244,8 +258,8 @@ if SERVER then
         if IsValid(ply) and ply:GetRole() == ROLES.SIDEKICK.index then
             local tly = BINDED_PLAYER[ply]
             
-            if tly and IsValid(tly) then
-                return ply.mateRole and GetRoleByIndex(ply.mateRole).team or tly:GetRoleData().team
+            if tly and IsValid(tly) and not ply.mateRole then
+                return tly:GetRoleData().team
             end
             
             return ply.mateRole and GetRoleByIndex(ply.mateRole).team
@@ -275,7 +289,7 @@ else -- CLIENT
         LocalPlayer().mateRole = role
     end)
     
-    hook.Add("TTTBeginRound", "SikiBeginRound", function()
+    hook.Add("TTTPrepareRound", "SikiBeginRound", function()
         LocalPlayer().mateRole = nil
     end)
     
@@ -284,7 +298,6 @@ else -- CLIENT
         if ROLES.SERIALKILLER and ply:GetRole() == ROLES.SIDEKICK.index then
             local bindedPlayer = ply:GetNWEntity("binded_sidekick")
         
-            -- just the sidekick can transfer to his mate, not vice-versa
             if bindedPlayer and IsValid(bindedPlayer) and bindedPlayer:IsPlayer() and bindedPlayer:GetRole() == ROLES.SERIALKILLER.index then
                 return true
             end
@@ -295,7 +308,7 @@ else -- CLIENT
         local client = LocalPlayer()
     
         if client:GetRole() == ROLES.SIDEKICK.index then
-            local bindedPlayer = client:GetNWEntity("binded_sidekick")
+            local bindedPlayer = client:GetSidekickMate()
         
             -- just the sidekick can transfer to his mate, not vice-versa
             if bindedPlayer and IsValid(bindedPlayer) and bindedPlayer:IsPlayer() then
@@ -306,10 +319,10 @@ else -- CLIENT
     
     hook.Add("TTT2_SearchRoleMaterialString", "SikiSRMS", function(ply, role)
         if role == ROLES.SIDEKICK.index then
-            local bindedPlayer = ply:GetNWEntity("binded_sidekick")
+            local bindedPlayer = ply:GetSidekickMate()
             
-            if bindedPlayer and IsValid(bindedPlayer) and bindedPlayer:IsPlayer() then
-                return ply.mateRole and GetRoleByIndex(ply.mateRole).abbr or bindedPlayer:GetRoleData().abbr
+            if bindedPlayer and IsValid(bindedPlayer) and bindedPlayer:IsPlayer() and not ply.mateRole then
+                return bindedPlayer:GetRoleData().abbr
             end
             
             return ply.mateRole and GetRoleByIndex(ply.mateRole).abbr
@@ -318,7 +331,7 @@ else -- CLIENT
     
     hook.Add("TTT2_GetIconRoleIndex", "SikiGIRI", function(ply)
         if ply:GetRole() == ROLES.SIDEKICK.index then
-            local bindedPlayer = ply:GetNWEntity("binded_sidekick")
+            local bindedPlayer = ply:GetSidekickMate()
             
             if bindedPlayer and IsValid(bindedPlayer) and bindedPlayer:IsPlayer() then
                 return ply.mateRole or bindedPlayer:GetRole()
@@ -328,25 +341,30 @@ else -- CLIENT
         end
     end)
     
-    --[[
-    hook.Add("PreDrawHalos", "AddSerialkillerHalos", function()
-        if LocalPlayer():GetRole() == ROLES.SIDEKICK.index then
-            local bindedPlayer = LocalPlayer():GetNWEntity("binded_sidekick")
-            
-            if bindedPlayer and IsValid(bindedPlayer) and bindedPlayer:IsPlayer() then
-                halo.Add(bindedPlayer, bindedPlayer:GetRoleData().color, 0, 0, 2, true, true)
-            end
-        end
-	end)
-    ]]--
-    
-    --[[
-    hook.Add("HUDDrawTargetCircleTex", "DrawSikiHUDCircle", function(ply)
+    hook.Add("PostDrawTranslucentRenderables", "PostDrawSikiTransRend", function()
         local client = LocalPlayer()
-    
-        if BINDED_PLAYER[ply] == client or BINDED_PLAYER[client] == ply then
-            return true
-        end
+		
+		local dir, pos
+		
+		local trace = client:GetEyeTrace(MASK_SHOT)
+		local ent = trace.Entity
+
+		if not IsValid(ent) or ent.NoTarget or not ent:IsPlayer() or not ent.GetRole or ent:GetRole() <= 0 then return end -- sometimes strange things happens... -- gmod, u know
+		
+		if client:IsActive() and (client:GetRole() == ROLES.SIDEKICK.index and client:GetSidekickMate() == ent or ent:GetRole() == ROLES.SIDEKICK.index) then
+			dir = (client:GetForward() * -1)
+
+			pos = ent:GetPos()
+			pos.z = pos.z + 74
+
+			if ent ~= client then
+				if ent:IsActive() then
+					if sikiMat then
+						render.SetMaterial(sikiMat)
+						render.DrawQuadEasy(pos, dir, 8, 8, indicator_siki_col, 180)
+					end
+				end
+			end
+		end
     end)
-    ]]--
 end
