@@ -51,6 +51,8 @@ if CLIENT then
             LANG.AddToLanguage("English", ROLES.SIDEKICK.name, "Sidekick")
             LANG.AddToLanguage("English", "target_" .. ROLES.SIDEKICK.name, "Sidekick")
             LANG.AddToLanguage("English", "ttt2_desc_" .. ROLES.SIDEKICK.name, [[You need to win with your mate!]])
+            LANG.AddToLanguage("English", "body_found_" .. ROLES.SIDEKICK.abbr, "This was a Sidekick...")
+            LANG.AddToLanguage("English", "search_role_" .. ROLES.SIDEKICK.abbr, "This person was a Sidekick!")
             
             ---------------------------------
 
@@ -58,6 +60,8 @@ if CLIENT then
             LANG.AddToLanguage("Deutsch", ROLES.SIDEKICK.name, "Sidekick")
             LANG.AddToLanguage("Deutsch", "target_" .. ROLES.SIDEKICK.name, "Sidekick")
             LANG.AddToLanguage("Deutsch", "ttt2_desc_" .. ROLES.SIDEKICK.name, [[Du musst mit deinem Mate gewinnen!]])
+            LANG.AddToLanguage("Deutsch", "body_found_" .. ROLES.SIDEKICK.abbr, "Er war ein Sidekick...")
+            LANG.AddToLanguage("Deutsch", "search_role_" .. ROLES.SIDEKICK.abbr, "Diese Person war ein Sidekick!")
         end
     end)
 end
@@ -116,6 +120,8 @@ if SERVER then
                     if IsValid(mate) and mate:IsPlayer() then
                         SendRoleListMessage(ROLES.SIDEKICK.index, {ply:EntIndex()}, mate)
                         SendRoleListMessage(mate:GetRole(), {mate:EntIndex()}, ply)
+        
+						SendMateRole(ply, mate)
                     end
                 end
             end
@@ -156,8 +162,8 @@ if SERVER then
         local siki = victim:GetNWEntity("binded_sidekick")
         
         if not IsValid(siki) or not siki:IsPlayer() then return end
-        
-        SendMateRole(siki, victim)
+		
+		-- todo 
     end)
     
     hook.Add("PlayerDisconnected", "SikiPlyDisconnected", function(discPly)
@@ -166,16 +172,12 @@ if SERVER then
         for siki, ply in pairs(BINDED_PLAYER) do
             if siki == discPly then
                 tmpSK = siki
-                
-                ply:SetNWEntity("binded_sidekick", nil)
             elseif ply == discPly then
                 tmpSK = siki
                 
-                ply:SetNWEntity("binded_sidekick", nil)
-        
-                if IsValid(siki) and siki:IsPlayer() then
-                    SendMateRole(siki, ply)
-                end
+                siki:SetNWEntity("binded_sidekick", nil)
+				
+				siki:UpdateRole(siki.mateRole or (IsValid(discPly) and discPly:GetRole()))
             end
             
             if tmpSK then
@@ -245,31 +247,15 @@ if SERVER then
             local tly = BINDED_PLAYER[ply]
             
             if tly and IsValid(tly) and not ply.mateRole then
-                return tly:GetRole()
+                return tly:GetRoleData()
             end
             
-            return ply.mateRole
+            return GetRoleByIndex(ply.mateRole)
         end
-        
-        return ROLES.SIDEKICK.index
-    end)
-    
-    hook.Add("TTT2_ScoringGettingTeam", "SikiSGR", function(ply)
-        if IsValid(ply) and ply:GetRole() == ROLES.SIDEKICK.index then
-            local tly = BINDED_PLAYER[ply]
-            
-            if tly and IsValid(tly) and not ply.mateRole then
-                return tly:GetRoleData().team
-            end
-            
-            return ply.mateRole and GetRoleByIndex(ply.mateRole).team
-        end
-        
-        return ROLES.SIDEKICK.team
     end)
     
     hook.Add("TTT2_CanTransferToPlayer", "SikiCTTP", function(ply, target)
-        if ply:GetRole() == ROLES.SIDEKICK.index then
+        if IsValid(ply) and ply:GetRole() == ROLES.SIDEKICK.index then
             local bindedPlayer = BINDED_PLAYER[ply]
         
             -- just the sidekick can transfer to his mate, not vice-versa
@@ -278,6 +264,21 @@ if SERVER then
             end
         end
     end)
+	
+	hook.Add("TTT2_ModifyScoringEvent", "SikiModifyScoringEvent", function(event, data)
+		if event.id == EVENT_KILL then
+			local victim = data.victim
+			local attacker = data.attacker
+			
+			if IsValid(victim) and victim:IsSidekick() and victim.mateRole then
+				event.vic.r = victim.mateRole
+			end
+			
+			if IsValid(attacker) and attacker:IsSidekick() and attacker.mateRole then
+				event.att.r = attacker.mateRole
+			end
+		end
+	end)
 else -- CLIENT
     net.Receive("TTT_HealPlayer", function()
         HealPlayer(LocalPlayer())
@@ -295,10 +296,16 @@ else -- CLIENT
     
     hook.Add("TTT2_PreventAccessShop", "SikiPreventShop", function(ply)
         -- prevent sidekick of serialkiller is able to shop
-        if ROLES.SERIALKILLER and ply:GetRole() == ROLES.SIDEKICK.index then
+        if ply:GetRole() == ROLES.SIDEKICK.index and (
+		ROLES.SERIALKILLER or
+		ROLES.JACKAL
+		) then
             local bindedPlayer = ply:GetNWEntity("binded_sidekick")
         
-            if bindedPlayer and IsValid(bindedPlayer) and bindedPlayer:IsPlayer() and bindedPlayer:GetRole() == ROLES.SERIALKILLER.index then
+            if bindedPlayer and IsValid(bindedPlayer) and bindedPlayer:IsPlayer() and (
+			ROLES.SERIALKILLER and bindedPlayer:GetRole() == ROLES.SERIALKILLER.index or
+			ROLES.JACKAL and bindedPlayer:GetRole() == ROLES.JACKAL.index
+			) then
                 return true
             end
         end
@@ -314,30 +321,6 @@ else -- CLIENT
             if bindedPlayer and IsValid(bindedPlayer) and bindedPlayer:IsPlayer() then
                 return bindedPlayer == target
             end
-        end
-    end)
-    
-    hook.Add("TTT2_SearchRoleMaterialString", "SikiSRMS", function(ply, role)
-        if role == ROLES.SIDEKICK.index then
-            local bindedPlayer = ply:GetSidekickMate()
-            
-            if bindedPlayer and IsValid(bindedPlayer) and bindedPlayer:IsPlayer() and not ply.mateRole then
-                return bindedPlayer:GetRoleData().abbr
-            end
-            
-            return ply.mateRole and GetRoleByIndex(ply.mateRole).abbr
-        end
-    end)
-    
-    hook.Add("TTT2_GetIconRoleIndex", "SikiGIRI", function(ply)
-        if ply:GetRole() == ROLES.SIDEKICK.index then
-            local bindedPlayer = ply:GetSidekickMate()
-            
-            if bindedPlayer and IsValid(bindedPlayer) and bindedPlayer:IsPlayer() then
-                return ply.mateRole or bindedPlayer:GetRole()
-            end
-            
-            return ply.mateRole
         end
     end)
     
