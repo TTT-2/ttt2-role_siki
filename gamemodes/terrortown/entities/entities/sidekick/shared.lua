@@ -253,17 +253,6 @@ if SERVER then
             return GetRoleByIndex(ply.mateRole)
         end
     end)
-    
-    hook.Add("TTT2_CanTransferToPlayer", "SikiCTTP", function(ply, target)
-        if IsValid(ply) and ply:GetRole() == ROLES.SIDEKICK.index then
-            local bindedPlayer = BINDED_PLAYER[ply]
-        
-            -- just the sidekick can transfer to his mate, not vice-versa
-            if bindedPlayer and IsValid(bindedPlayer) then
-                return bindedPlayer == target
-            end
-        end
-    end)
 	
 	hook.Add("TTT2_ModifyScoringEvent", "SikiModifyScoringEvent", function(event, data)
 		if event.id == EVENT_KILL then
@@ -307,19 +296,6 @@ else -- CLIENT
 			ROLES.JACKAL and bindedPlayer:GetRole() == ROLES.JACKAL.index
 			) then
                 return true
-            end
-        end
-    end)
-
-    hook.Add("TTT2_CanTransferToPlayer", "SikiCTTP", function(target)
-        local client = LocalPlayer()
-    
-        if client:GetRole() == ROLES.SIDEKICK.index then
-            local bindedPlayer = client:GetSidekickMate()
-        
-            -- just the sidekick can transfer to his mate, not vice-versa
-            if bindedPlayer and IsValid(bindedPlayer) and bindedPlayer:IsPlayer() then
-                return bindedPlayer == target
             end
         end
     end)
