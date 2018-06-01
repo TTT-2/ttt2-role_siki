@@ -259,11 +259,11 @@ if SERVER then
 			local victim = data.victim
 			local attacker = data.attacker
 			
-			if IsValid(victim) and victim:IsSidekick() and victim.mateRole then
+			if IsValid(victim) and victim:IsPlayer() and victim:IsSidekick() and victim.mateRole then
 				event.vic.r = victim.mateRole
 			end
 			
-			if IsValid(attacker) and attacker:IsSidekick() and attacker.mateRole then
+			if IsValid(attacker) and attacker:IsPlayer() and attacker:IsSidekick() and attacker.mateRole then
 				event.att.r = attacker.mateRole
 			end
 		end
@@ -286,29 +286,29 @@ else -- CLIENT
     hook.Add("TTT2_PreventAccessShop", "SikiPreventShop", function(ply)
         -- prevent sidekick of serialkiller is able to shop
         if ply:GetRole() == ROLES.SIDEKICK.index and (
-		ROLES.SERIALKILLER or
-		ROLES.JACKAL
+			ROLES.SERIALKILLER or
+			ROLES.JACKAL
 		) then
             local bindedPlayer = ply:GetNWEntity("binded_sidekick")
         
             if bindedPlayer and IsValid(bindedPlayer) and bindedPlayer:IsPlayer() and (
-			ROLES.SERIALKILLER and bindedPlayer:GetRole() == ROLES.SERIALKILLER.index or
-			ROLES.JACKAL and bindedPlayer:GetRole() == ROLES.JACKAL.index
+				ROLES.SERIALKILLER and bindedPlayer:GetRole() == ROLES.SERIALKILLER.index or
+				ROLES.JACKAL and bindedPlayer:GetRole() == ROLES.JACKAL.index
 			) then
                 return true
             end
         end
     end)
     
+	-- TODO everytime visible
     hook.Add("PostDrawTranslucentRenderables", "PostDrawSikiTransRend", function()
-        local client = LocalPlayer()
-		
 		local dir, pos
 		
+        local client = LocalPlayer()
 		local trace = client:GetEyeTrace(MASK_SHOT)
 		local ent = trace.Entity
 
-		if not IsValid(ent) or ent.NoTarget or not ent:IsPlayer() or not ent.GetRole or ent:GetRole() <= 0 then return end -- sometimes strange things happens... -- gmod, u know
+		if not IsValid(ent) or ent.NoTarget or not ent:IsPlayer() or not ent.GetRole or not ent:GetRole() or ent:GetRole() <= 0 then return end -- sometimes strange things happens... -- gmod, u know
 		
 		if client:IsActive() and (client:GetRole() == ROLES.SIDEKICK.index and client:GetSidekickMate() == ent or ent:GetRole() == ROLES.SIDEKICK.index) then
 			dir = (client:GetForward() * -1)
