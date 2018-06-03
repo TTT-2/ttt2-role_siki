@@ -38,6 +38,9 @@ AddCustomRole("SIDEKICK", { -- first param is access for ROLES array => ROLES.SI
     scoreTeamKillsMultiplier = -16, -- multiplier for teamkill
     preventWin = true,
     notSelectable = true -- role cant be selected !
+},
+{
+	shopFallback = SHOP_FALLBACK_TRAITOR
 })
 
 -- if sync of roles has finished
