@@ -1,4 +1,8 @@
-AddCSLuaFile()
+if SERVER then
+	AddCSLuaFile()
+end
+
+CreateConVar("ttt2_siki_noshop", "0", {FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED})
 
 local sikiMat
 local indicator_siki_col
@@ -290,13 +294,15 @@ else -- CLIENT
         -- prevent sidekick of serialkiller is able to shop
         if ply:GetRole() == ROLES.SIDEKICK.index and (
 			ROLES.SERIALKILLER or
-			ROLES.JACKAL
+			ROLES.JACKAL or
+			GetConVar("ttt2_siki_noshop"):GetBool()
 		) then
             local bindedPlayer = ply:GetNWEntity("binded_sidekick")
         
             if bindedPlayer and IsValid(bindedPlayer) and bindedPlayer:IsPlayer() and (
 				ROLES.SERIALKILLER and bindedPlayer:GetRole() == ROLES.SERIALKILLER.index or
-				ROLES.JACKAL and bindedPlayer:GetRole() == ROLES.JACKAL.index
+				ROLES.JACKAL and bindedPlayer:GetRole() == ROLES.JACKAL.index or
+				GetConVar("ttt2_siki_noshop"):GetBool()
 			) then
                 return true
             end
