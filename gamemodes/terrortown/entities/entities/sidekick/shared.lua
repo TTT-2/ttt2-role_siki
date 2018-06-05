@@ -2,8 +2,6 @@ if SERVER then
 	AddCSLuaFile()
 end
 
-CreateConVar("ttt2_siki_noshop", "0", {FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED})
-
 local sikiMat
 local indicator_siki_col
 
@@ -25,27 +23,29 @@ else
 	local indicator_siki_col = Color(255, 255, 255, 130)
 end
 
--- important to add roles with this function,
--- because it does more than just access the array ! e.g. updating other arrays
-AddCustomRole("SIDEKICK", { -- first param is access for ROLES array => ROLES.SIDEKICK or ROLES["SIDEKICK"]
-	color = Color(0, 0, 0, 255), -- ...
-	dkcolor = Color(0, 0, 0, 255), -- ...
-	bgcolor = Color(0, 0, 0, 200), -- ...
-	name = "sidekick", -- just a unique name for the script to determine
-	printName = "Sidekick", -- The text that is printed to the player, e.g. in role alert
-	abbr = "siki", -- abbreviation
-	shop = true, -- can the role access the [C] shop ?
-	team = "sikis", -- the team name: roles with same team name are working together
-	defaultEquipment = SPECIAL_EQUIPMENT, -- here you can set up your own default equipment 
-    surviveBonus = 1, -- bonus multiplier for every survive while another player was killed
-    scoreKillsMultiplier = 5, -- multiplier for kill of player of another team
-    scoreTeamKillsMultiplier = -16, -- multiplier for teamkill
-    preventWin = true,
-    notSelectable = true -- role cant be selected !
-},
-{
-	shopFallback = SHOP_FALLBACK_TRAITOR
-})
+hook.Add("Initialize", "TTT2InitCRoleSiki", function()
+	-- important to add roles with this function,
+	-- because it does more than just access the array ! e.g. updating other arrays
+	AddCustomRole("SIDEKICK", { -- first param is access for ROLES array => ROLES.SIDEKICK or ROLES["SIDEKICK"]
+		color = Color(0, 0, 0, 255), -- ...
+		dkcolor = Color(0, 0, 0, 255), -- ...
+		bgcolor = Color(0, 0, 0, 200), -- ...
+		name = "sidekick", -- just a unique name for the script to determine
+		printName = "Sidekick", -- The text that is printed to the player, e.g. in role alert
+		abbr = "siki", -- abbreviation
+		shop = true, -- can the role access the [C] shop ?
+		team = "sikis", -- the team name: roles with same team name are working together
+		defaultEquipment = SPECIAL_EQUIPMENT, -- here you can set up your own default equipment 
+		surviveBonus = 1, -- bonus multiplier for every survive while another player was killed
+		scoreKillsMultiplier = 5, -- multiplier for kill of player of another team
+		scoreTeamKillsMultiplier = -16, -- multiplier for teamkill
+		preventWin = true,
+		notSelectable = true -- role cant be selected !
+	},
+	{
+		shopFallback = SHOP_FALLBACK_TRAITOR
+	})
+end)
 
 -- if sync of roles has finished
 if CLIENT then
@@ -163,15 +163,15 @@ if SERVER then
         end
     end)
     
+	--[[
     hook.Add("PlayerDeath", "SikiPlayerDeath", function(victim, infl, attacker)
         if not IsValid(victim) or not victim:IsPlayer() then return end
         
         local siki = victim:GetNWEntity("binded_sidekick")
         
         if not IsValid(siki) or not siki:IsPlayer() then return end
-		
-		-- todo 
     end)
+	]]--
     
     hook.Add("PlayerDisconnected", "SikiPlyDisconnected", function(discPly)
         local tmpSK
@@ -294,15 +294,13 @@ else -- CLIENT
         -- prevent sidekick of serialkiller is able to shop
         if ply:GetRole() == ROLES.SIDEKICK.index and (
 			ROLES.SERIALKILLER or
-			ROLES.JACKAL or
-			GetConVar("ttt2_siki_noshop"):GetBool()
+			ROLES.JACKAL
 		) then
             local bindedPlayer = ply:GetNWEntity("binded_sidekick")
         
             if bindedPlayer and IsValid(bindedPlayer) and bindedPlayer:IsPlayer() and (
 				ROLES.SERIALKILLER and bindedPlayer:GetRole() == ROLES.SERIALKILLER.index or
-				ROLES.JACKAL and bindedPlayer:GetRole() == ROLES.JACKAL.index or
-				GetConVar("ttt2_siki_noshop"):GetBool()
+				ROLES.JACKAL and bindedPlayer:GetRole() == ROLES.JACKAL.index
 			) then
                 return true
             end
