@@ -148,16 +148,6 @@ if SERVER then
             if (target:Health() - dmginfo:GetDamage()) <= 0 and hook.Run("TTT2_SIKI_CanAttackerSidekick", attacker, target) then
                 dmginfo:ScaleDamage(0)
                 
-                local tName = "FreezeSidekickForInit_" .. target:SteamID()
-                    
-                if not timer.Exists(tName) then
-                    target:Freeze(true)
-                    
-                    timer.Create(tName, 1, 1, function() 
-                        target:Freeze(false)
-                    end)
-                end
-                
                 AddSidekick(target, attacker)
                 HealPlayer(target)
                 
@@ -188,6 +178,7 @@ if SERVER then
 					local newRole = siki.mateRole or (IsValid(mate) and mate:GetRole())
 					if newRole then
 						siki:UpdateRole(newRole)
+						siki:SetDefaultCredits()
 
 						SendFullStateUpdate()
 					end
@@ -206,6 +197,7 @@ if SERVER then
 					local newRole = siki.mateRole or ply:GetRole()
 					if newRole then
 						siki:UpdateRole(newRole)
+						siki:SetDefaultCredits()
 						
 						SendFullStateUpdate()
 					end
@@ -310,6 +302,32 @@ else -- CLIENT
 		if IsValid(ply) then
 			if ply.GetRole and ply:GetRole() and ply:GetRole() == ROLES.SIDEKICK.index then
 				local mate = ply:GetSidekickMate()
+				
+				if IsValid(mate) and mate:IsPlayer() then
+					local col = table.Copy(mate:GetRoleData().color)
+					
+					-- darken color
+					for _, v in ipairs{"r", "g", "b"} do
+						col[v] = col[v] - 45
+						if col[v] < 0 then
+							col[v] = 0
+						end
+					end
+					
+					col.a = 255
+				
+					return col
+				end
+			end
+		end
+	end)
+	
+	hook.Add("TTT2ModifyWeaponColors", "SikiModifyWeaponColors", function()
+		local client = LocalPlayer()
+	
+		if IsValid(client) then
+			if client.GetRole and client:GetRole() and client:GetRole() == ROLES.SIDEKICK.index then
+				local mate = client:GetSidekickMate()
 				
 				if IsValid(mate) and mate:IsPlayer() then
 					local col = table.Copy(mate:GetRoleData().color)
