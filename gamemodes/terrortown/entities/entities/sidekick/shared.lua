@@ -297,34 +297,8 @@ else -- CLIENT
             end
         end
     end)
-    
-	hook.Add("TTTScoreboardRowColorForPlayer", "ModifySikiSBColor", function(ply)
-		if IsValid(ply) then
-			if ply.GetRole and ply:GetRole() and ply:GetRole() == ROLES.SIDEKICK.index then
-				local mate = ply:GetSidekickMate()
-				
-				if IsValid(mate) and mate:IsPlayer() then
-					local col = table.Copy(mate:GetRoleData().color)
-					
-					-- darken color
-					for _, v in ipairs{"r", "g", "b"} do
-						col[v] = col[v] - 45
-						if col[v] < 0 then
-							col[v] = 0
-						end
-					end
-					
-					col.a = 255
-				
-					return col
-				end
-			end
-		end
-	end)
 	
-	hook.Add("TTT2ModifyWeaponColors", "SikiModifyWeaponColors", function()
-		local client = LocalPlayer()
-	
+	local function GetDarkenMateColor(ply)
 		if IsValid(client) then
 			if client.GetRole and client:GetRole() and client:GetRole() == ROLES.SIDEKICK.index then
 				local mate = client:GetSidekickMate()
@@ -346,6 +320,18 @@ else -- CLIENT
 				end
 			end
 		end
+	end
+    
+	hook.Add("TTTScoreboardRowColorForPlayer", "ModifySikiSBColor", function(ply)
+		return GetDarkenMateColor(ply)
+	end)
+	
+	hook.Add("TTT2ModifyWeaponColors", "SikiModifyWeaponColors", function()
+		return GetDarkenMateColor(LocalPlayer())
+	end)
+	
+	hook.Add("TTT2ModifyRoleBGColor", "SikiModifyRoleBGColor", function()
+		return GetDarkenMateColor(LocalPlayer())
 	end)
 	
     hook.Add("PostDrawTranslucentRenderables", "PostDrawSikiTransRend", function()
