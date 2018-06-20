@@ -57,7 +57,8 @@ hook.Add("Initialize", "TTT2InitCRoleSiki", function()
 		scoreKillsMultiplier = 5, -- multiplier for kill of player of another team
 		scoreTeamKillsMultiplier = -16, -- multiplier for teamkill
 		preventWin = true,
-		notSelectable = true -- role cant be selected !
+		notSelectable = true, -- role cant be selected!
+		avoidTeamIcons = true -- prevent default team icons
 	},
 	{
 		shopFallback = SHOP_FALLBACK_TRAITOR
