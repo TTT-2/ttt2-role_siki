@@ -48,9 +48,7 @@ hook.Add("Initialize", "TTT2InitCRoleSiki", function()
 		dkcolor = Color(0, 0, 0, 255), -- ...
 		bgcolor = Color(0, 0, 0, 200), -- ...
 		name = "sidekick", -- just a unique name for the script to determine
-		printName = "Sidekick", -- The text that is printed to the player, e.g. in role alert
 		abbr = "siki", -- abbreviation
-		shop = true, -- can the role access the [C] shop ?
 		team = "sikis", -- the team name: roles with same team name are working together
 		defaultEquipment = SPECIAL_EQUIPMENT, -- here you can set up your own default equipment 
 		surviveBonus = 1, -- bonus multiplier for every survive while another player was killed
