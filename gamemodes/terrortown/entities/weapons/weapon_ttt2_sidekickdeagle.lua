@@ -15,24 +15,13 @@ if SERVER then
 	AddCSLuaFile()
 
 	resource.AddFile("materials/vgui/ttt/icon_sidekickdeagle.vmt")
-
-	--[[
-	-- auto add sidekick weapon into jackal shop
-	hook.Add("TTT2_LoadSingleShopEquipment", "SidekickDeagleAddToShop", function(roleData)
-		if ROLES and ROLES.JACKAL and ROLES.SIDEKICK and roleData == ROLES.JACKAL then
-			if not WeaponshopHasEquipment(ROLES.JACKAL, "weapon_ttt2_sidekickdeagle") then
-				AddToWeaponshop(ROLES.JACKAL, "weapon_ttt2_sidekickdeagle")
-			end
-		end
-	end)
-	]]--
 else
 	hook.Add("Initialize", "TTTInitSikiDeagleLang", function()
 		LANG.AddToLanguage("English", "ttt2_weapon_sidekickdeagle_desc", "Shoot a player to make him your sidekick.")
 		LANG.AddToLanguage("Deutsch", "ttt2_weapon_sidekickdeagle_desc", "Schieße auf einen Spieler, um ihn zu deinem Sidekick zu machen.")
 	end)
-	
-	SWEP.PrintName = "Sidekick Deagle"	
+
+	SWEP.PrintName = "Sidekick Deagle"
 	SWEP.Author = "Alf21"
 
 	SWEP.Slot = 7
@@ -85,14 +74,14 @@ function SWEP:OnDrop()
 end
 
 function SWEP:ShootBullet(dmg, recoil, numbul, cone)
-	if ROLES.SIDEKICK then
+	if SIDEKICK then
 		self:SendWeaponAnim(self.PrimaryAnim)
-		
+
 		self.Owner:MuzzleFlash()
 		self.Owner:SetAnimation(PLAYER_ATTACK1)
-		
+
 		if not IsFirstTimePredicted() then return end
-		
+
 		local bullet = {}
 		bullet.Num = 1
 		bullet.Src = self.Owner:GetShootPos()
@@ -100,26 +89,26 @@ function SWEP:ShootBullet(dmg, recoil, numbul, cone)
 		bullet.Spread = Vector(0.00001, 0.00001, 0)
 		bullet.Force = 0
 		bullet.Damage = dmg
-		
+
 		if SERVER then
 			bullet.Callback = function(atk, tr, dmginfo)
 				local target = tr.Entity
-				
+
 				if target and IsValid(target) and target:IsPlayer() and target:IsTerror() and target:IsActive() then
 					dmginfo:ScaleDamage(0)
-					
+
 					AddSidekick(target, atk)
 				end
 			end
 		end
-		
+
 		self.Owner:FireBullets(bullet)
 	end
 end
-	
+
 -- auto add sidekick weapon into jackal shop
 hook.Add("PostInitPostEntity", "SidekickDeagleAddToShop", function()
-	if ROLES.JACKAL and ROLES.SIDEKICK and ROLES.JACKAL.fallbackTable then
-		AddWeaponIntoFallbackTable("weapon_ttt2_sidekickdeagle", ROLES.JACKAL)
+	if JACKAL and SIDEKICK and JACKAL.fallbackTable then
+		AddWeaponIntoFallbackTable("weapon_ttt2_sidekickdeagle", JACKAL)
 	end
 end)
