@@ -5,6 +5,8 @@ if SERVER then
 	resource.AddFile("materials/vgui/ttt/sprite_siki.vmt")
 end
 
+local protectionTime = CreateConVar("ttt2_siki_protection_time", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE})
+
 local plymeta = FindMetaTable("Player")
 if not plymeta then return end
 
@@ -94,11 +96,17 @@ if SERVER then
 
 		target.mateSubRole = attacker:GetSubRole()
 
+		target.sikiTimestamp = os.time()
+		target.sikiIssuer = attacker
+
 		SendFullStateUpdate()
 	end
 
 	hook.Add("EntityTakeDamage", "SikiEntTakeDmg", function(target, dmginfo)
 		local attacker = dmginfo:GetAttacker()
+		local pTime = protectionTime:GetInt()
+
+		if pTime > 0 and IsValid(target) and IsValid(attacker) and target:IsActive() and attacker:IsActive() and attacker:IsSidekick() and attacker.sikiIssuer == target and attacker.sikiTimestamp + pTime >= os.time() then return end
 
 		if target:IsPlayer() and IsValid(attacker) and attacker:IsPlayer()
 		and (target:Health() - dmginfo:GetDamage()) <= 0
