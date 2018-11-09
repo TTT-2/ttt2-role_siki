@@ -106,7 +106,7 @@ if SERVER then
 		local attacker = dmginfo:GetAttacker()
 		local pTime = protectionTime:GetInt()
 
-		if pTime > 0 and IsValid(target) and IsValid(attacker) and target:IsActive() and attacker:IsActive() and attacker:IsSidekick() and attacker.sikiIssuer == target and attacker.sikiTimestamp + pTime >= os.time() then return end
+		if pTime > 0 and IsValid(target) and IsValid(attacker) and target:IsPlayer() and attacker:IsPlayer() and target:IsActive() and attacker:IsActive() and attacker:IsSidekick() and attacker.sikiIssuer == target and attacker.sikiTimestamp + pTime >= os.time() then return end
 
 		if target:IsPlayer() and IsValid(attacker) and attacker:IsPlayer()
 		and (target:Health() - dmginfo:GetDamage()) <= 0
