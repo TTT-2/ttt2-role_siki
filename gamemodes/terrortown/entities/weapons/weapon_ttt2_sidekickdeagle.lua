@@ -107,7 +107,7 @@ function SWEP:ShootBullet(dmg, recoil, numbul, cone)
 end
 
 -- auto add sidekick weapon into jackal shop
-hook.Add("PostInitPostEntity", "SidekickDeagleAddToShop", function()
+hook.Add("LoadedFallbackShops", "SidekickDeagleAddToShop", function()
 	if JACKAL and SIDEKICK and JACKAL.fallbackTable then
 		AddWeaponIntoFallbackTable("weapon_ttt2_sidekickdeagle", JACKAL)
 	end
