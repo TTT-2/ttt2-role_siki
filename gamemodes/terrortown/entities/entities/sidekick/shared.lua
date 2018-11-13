@@ -30,14 +30,15 @@ InitCustomRole("SIDEKICK", { -- first param is access for ROLES array => SIDEKIC
 		shopFallback = SHOP_FALLBACK_TRAITOR
 })
 
+hook.Add("TTTUlxDynamicRCVars", "TTTUlxDynamicSikiCVars", function(tbl)
+	tbl[ROLE_SIDEKICK] = tbl[ROLE_SIDEKICK] or {}
+
+	table.insert(tbl[ROLE_SIDEKICK], {cvar = "ttt2_siki_protection_time", slider = true, min = 0, max = 60, desc = "Protection Time for new Sidekick (Def. 1)"})
+end)
+
 -- if sync of roles has finished
 if CLIENT then
 	hook.Add("TTT2FinishedLoading", "SikiInitT", function()
-		hook.Add("TTTUlxDynamicRCVars", "TTTUlxDynamicSikiCVars", function(tbl)
-			tbl[ROLE_SIDEKICK] = tbl[ROLE_SIDEKICK] or {}
-
-			table.insert(tbl[ROLE_SIDEKICK], {cvar = "ttt2_siki_protection_time", slider = true, min = 0, max = 60, desc = "Protection Time for new Sidekick (Def. 1)"})
-		end)
 		-- setup here is not necessary but if you want to access the role data, you need to start here
 		-- setup basic translation !
 		LANG.AddToLanguage("English", SIDEKICK.name, "Sidekick")
