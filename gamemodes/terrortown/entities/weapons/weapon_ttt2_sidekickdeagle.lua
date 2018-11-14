@@ -48,7 +48,6 @@ SWEP.Primary.Ammo = ""
 SWEP.Primary.ClipSize = 1
 SWEP.Primary.ClipMax = 1
 SWEP.Primary.DefaultClip = 1
-SWEP.AmmoEnt = ""
 
 -- some other stuff
 SWEP.InLoadoutFor = nil
