@@ -197,7 +197,7 @@ if SERVER then
 	hook.Add("TTTBodyFound", "SikiSendLastColor", function(ply, deadply, rag)
 		if IsValid(deadply) and deadply:GetSubRole() == ROLE_SIDEKICK then
 			net.Start("TTT2SyncSikiColor")
-			net.WriteString(deadply:SteamID64())
+			net.WriteString(deadply:EntIndex())
 			net.WriteUInt(deadply.mateSubRole, ROLE_BITS)
 			net.WriteUInt(deadply.lastMateSubRole, ROLE_BITS)
 			net.Broadcast()
@@ -209,9 +209,9 @@ else -- CLIENT
 	end)
 
 	net.Receive("TTT2SyncSikiColor", function()
-		local ply = player.GetBySteamID64(net.ReadString())
+		local ply = Entity(net.ReadString())
 
-		if IsValid(ply) then
+		if IsValid(ply) and ply:IsPlayer() then
 			ply.mateSubRole = net.ReadUInt(ROLE_BITS)
 			ply.lastMateSubRole = net.ReadUInt(ROLE_BITS)
 		end
