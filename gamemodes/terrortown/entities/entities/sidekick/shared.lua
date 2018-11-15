@@ -217,23 +217,30 @@ else -- CLIENT
 		end
 	end)
 
+	local function tmpfnc(ply, mate)
+		if IsValid(mate) and mate:IsPlayer() then
+			return table.Copy(mate:GetSubRoleData().color)
+		elseif ply.mateSubRole then
+			return table.Copy(GetRoleByIndex(ply.mateSubRole).color)
+		end
+	end
+
 	local function GetDarkenMateColor(ply)
 		ply = ply or LocalPlayer()
 
 		if IsValid(ply) and ply.GetSubRole and ply:GetSubRole() and ply:GetSubRole() == ROLE_SIDEKICK then
 			local col
 			local deadSubRole = ply.lastMateSubRole
+			local mate = ply:GetSidekickMate()
 
 			if not ply:Alive() and deadSubRole then
-				col = table.Copy(GetRoleByIndex(deadSubRole).color)
-			else
-				local mate = ply:GetSidekickMate()
-
-				if IsValid(mate) and mate:IsPlayer() then
-					col = table.Copy(mate:GetSubRoleData().color)
-				elseif ply.mateSubRole then
-					col = table.Copy(GetRoleByIndex(ply.mateSubRole).color)
+				if IsValid(mate) and mate:IsPlayer() and mate:IsInTeam(ply) and not mate:GetSubRoleData().unknownTeam then
+					col = tmpfnc(ply, mate)
+				else
+					col = table.Copy(GetRoleByIndex(deadSubRole).color)
 				end
+			else
+				col = tmpfnc(ply, mate)
 			end
 
 			if col then
