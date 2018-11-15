@@ -219,6 +219,15 @@ else -- CLIENT
 	-- Modify colors
 	hook.Add("TTTScoreboardRowColorForPlayer", "ModifySikiSBColor", GetDarkenMateColor)
 	hook.Add("TTT2ModifyWeaponColors", "SikiModifyWeaponColors", GetDarkenMateColor)
-	hook.Add("TTT2ModifyRoleIconColor", "SikiModifyWeaponColors", GetDarkenMateColor)
 	hook.Add("TTT2ModifyRoleBGColor", "SikiModifyRoleBGColor", GetDarkenMateColor)
+
+	hook.Add("TTT2ModifyRoleIconColor", "SikiModifyRoleIconColors", function(ply)
+		local col = GetDarkenMateColor(ply)
+
+		if col then
+			col.a = 130
+
+			return col
+		end
+	end)
 end
