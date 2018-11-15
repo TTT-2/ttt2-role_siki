@@ -24,7 +24,8 @@ InitCustomRole("SIDEKICK", { -- first param is access for ROLES array => SIDEKIC
 		scoreKillsMultiplier = 5, -- multiplier for kill of player of another team
 		scoreTeamKillsMultiplier = -16, -- multiplier for teamkill
 		preventWin = true,
-		notSelectable = true -- role cant be selected!
+		notSelectable = true, -- role cant be selected!
+		disableSync = true -- just sync if body got found or round is over
 	},
 	{
 		shopFallback = SHOP_FALLBACK_TRAITOR
@@ -92,6 +93,7 @@ end
 
 if SERVER then
 	util.AddNetworkString("TTT_HealPlayer")
+	util.AddNetworkString("TTT2SyncSikiColor")
 
 	function AddSidekick(target, attacker)
 		if target:IsSidekick() or attacker:IsSidekick() then return end
@@ -178,13 +180,27 @@ if SERVER then
 				end
 			end
 		end
+
+		local mate = ply:GetSidekickMate() -- Is Sidekick?
+
+		if IsValid(mate) and not ply.lastMateSubRole then
+			ply.lastMateSubRole = ply.mateSubRole or mate:GetSubRole()
+		end
 	end)
 
-	hook.Add("TTTPrepareRound", "SikiPrepareRound", function()
-		for _, ply in ipairs(player.GetAll()) do
-			ply.mateSubRole = nil
+	hook.Add("TTT2OverrideDisabledSync", "SikiAllowTeammateSync", function(ply, p)
+		if IsValid(p) and p:GetSubRole() == ROLE_SIDEKICK and ply:IsInTeam(p) and not ply:GetSubRoleData().unknownTeam then
+			return true
+		end
+	end)
 
-			ply:SetNWEntity("binded_sidekick", nil)
+	hook.Add("TTTBodyFound", "SikiSendLastColor", function(ply, deadply, rag)
+		if IsValid(deadply) and deadply:GetSubRole() == ROLE_SIDEKICK then
+			net.Start("TTT2SyncSikiColor")
+			net.WriteString(deadply:SteamID64())
+			net.WriteUInt(deadply.mateSubRole, ROLE_BITS)
+			net.WriteUInt(deadply.lastMateSubRole, ROLE_BITS)
+			net.Broadcast()
 		end
 	end)
 else -- CLIENT
@@ -192,18 +208,38 @@ else -- CLIENT
 		HealPlayer(LocalPlayer())
 	end)
 
+	net.Receive("TTT2SyncSikiColor", function()
+		local ply = player.GetBySteamID64(net.ReadString())
+
+		if IsValid(ply) then
+			ply.mateSubRole = net.ReadUInt(ROLE_BITS)
+			ply.lastMateSubRole = net.ReadUInt(ROLE_BITS)
+		end
+	end)
+
 	local function GetDarkenMateColor(ply)
 		ply = ply or LocalPlayer()
 
 		if IsValid(ply) and ply.GetSubRole and ply:GetSubRole() and ply:GetSubRole() == ROLE_SIDEKICK then
-			local mate = ply:GetSidekickMate()
+			local col
+			local deadSubRole = ply.lastMateSubRole
 
-			if IsValid(mate) and mate:IsPlayer() then
-				local col = table.Copy(mate:GetSubRoleData().color)
+			if not ply:Alive() and deadSubRole then
+				col = table.Copy(GetRoleByIndex(deadSubRole).color)
+			else
+				local mate = ply:GetSidekickMate()
 
+				if IsValid(mate) and mate:IsPlayer() then
+					col = table.Copy(mate:GetSubRoleData().color)
+				elseif ply.mateSubRole then
+					col = table.Copy(GetRoleByIndex(ply.mateSubRole).color)
+				end
+			end
+
+			if col then
 				-- darken color
 				for _, v in ipairs{"r", "g", "b"} do
-					col[v] = col[v] - 45
+					col[v] = col[v] - 60
 					if col[v] < 0 then
 						col[v] = 0
 					end
@@ -223,7 +259,6 @@ else -- CLIENT
 
 	hook.Add("TTT2ModifyRoleIconColor", "SikiModifyRoleIconColors", function(ply)
 		local col = GetDarkenMateColor(ply)
-
 		if col then
 			col.a = 130
 
@@ -231,3 +266,14 @@ else -- CLIENT
 		end
 	end)
 end
+
+hook.Add("TTTPrepareRound", "SikiPrepareRound", function()
+	for _, ply in ipairs(player.GetAll()) do
+		ply.mateSubRole = nil
+		ply.lastMateSubRole = nil
+
+		if SERVER then
+			ply:SetNWEntity("binded_sidekick", nil)
+		end
+	end
+end)
