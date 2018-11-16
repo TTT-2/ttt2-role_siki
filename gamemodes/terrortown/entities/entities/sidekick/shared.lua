@@ -16,8 +16,7 @@ if not plymeta then return end
 InitCustomRole("SIDEKICK", { -- first param is access for ROLES array => SIDEKICK or ROLES["SIDEKICK"]
 		color = Color(0, 0, 0, 255), -- ...
 		dkcolor = Color(0, 0, 0, 255), -- ...
-		bgcolor = Color(0, 0, 0, 200), -- ...
-		name = "sidekick", -- just a unique name for the script to determine
+		bgcolor = Color(255, 255, 255, 255), -- ...
 		abbr = "siki", -- abbreviation
 		defaultEquipment = SPECIAL_EQUIPMENT, -- here you can set up your own default equipment
 		surviveBonus = 1, -- bonus multiplier for every survive while another player was killed
@@ -267,7 +266,7 @@ else -- CLIENT
 	hook.Add("TTT2ModifyRoleIconColor", "SikiModifyRoleIconColors", function(ply)
 		local col = GetDarkenMateColor(ply)
 		if col then
-			col.a = 130
+			col.a = 200
 
 			return col
 		end
