@@ -188,7 +188,7 @@ if SERVER then
 	end)
 
 	hook.Add("TTT2OverrideDisabledSync", "SikiAllowTeammateSync", function(ply, p)
-		if IsValid(p) and p:GetSubRole() == ROLE_SIDEKICK and ply:IsInTeam(p) and not ply:GetSubRoleData().unknownTeam then
+		if IsValid(p) and p:GetSubRole() == ROLE_SIDEKICK and ply:IsInTeam(p) and (not ply:GetSubRoleData().unknownTeam or ply == p:GetSidekickMate()) then
 			return true
 		end
 	end)
@@ -200,6 +200,20 @@ if SERVER then
 			net.WriteUInt(deadply.mateSubRole, ROLE_BITS)
 			net.WriteUInt(deadply.lastMateSubRole, ROLE_BITS)
 			net.Broadcast()
+		end
+	end)
+
+	-- fix that innos can see their sikis
+	hook.Add("TTT2SpecialRoleSyncing", "TTT2SikiInnoSyncFix", function(ply, tmp)
+		local rd = ply:GetSubRoleData()
+		local sikis = ply:GetSidekicks()
+
+		if rd.unknownTeam and sikis then
+			for _, siki in ipairs(sikis) do
+				if IsValid(siki) and siki:IsInTeam(ply) then
+					tmp[siki] = {ROLE_SIDEKICK, ply:GetTeam()}
+				end
+			end
 		end
 	end)
 else -- CLIENT
