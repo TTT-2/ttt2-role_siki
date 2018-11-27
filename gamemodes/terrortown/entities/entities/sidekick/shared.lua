@@ -109,11 +109,17 @@ if SERVER then
 		SendFullStateUpdate()
 	end
 
-	hook.Add("EntityTakeDamage", "SikiEntTakeDmg", function(target, dmginfo)
-		local attacker = dmginfo:GetAttacker()
+	hook.Add("PlayerShouldTakeDamage", "SikiProtectionTime" function(ply, atk)
 		local pTime = protectionTime:GetInt()
 
-		if pTime > 0 and IsValid(target) and IsValid(attacker) and target:IsPlayer() and attacker:IsPlayer() and target:IsActive() and attacker:IsActive() and attacker:IsSidekick() and attacker.sikiIssuer == target and attacker.sikiTimestamp + pTime >= os.time() then return end
+		if pTime > 0 and IsValid(atk) and atk:IsPlayer()
+		and ply:IsActive() and ply:IsActive()
+		and atk:IsSidekick() and atk.sikiIssuer == ply
+		and atk.sikiTimestamp + pTime >= os.time() then return false end
+	end)
+
+	hook.Add("EntityTakeDamage", "SikiEntTakeDmg", function(target, dmginfo)
+		local attacker = dmginfo:GetAttacker()
 
 		if target:IsPlayer() and IsValid(attacker) and attacker:IsPlayer()
 		and (target:Health() - dmginfo:GetDamage()) <= 0
