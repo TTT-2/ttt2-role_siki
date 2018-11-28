@@ -1,8 +1,7 @@
 if SERVER then
 	AddCSLuaFile()
 
-	resource.AddFile("materials/vgui/ttt/icon_siki.vmt")
-	resource.AddFile("materials/vgui/ttt/sprite_siki.vmt")
+	resource.AddFile("materials/vgui/ttt/dynamic/roles/icon_siki.vmt")
 end
 
 local protectionTime = CreateConVar("ttt2_siki_protection_time", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE})
