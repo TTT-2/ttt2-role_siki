@@ -98,7 +98,6 @@ if SERVER then
 
 		target:SetNWEntity("binded_sidekick", attacker)
 		target:SetRole(ROLE_SIDEKICK, attacker:GetTeam())
-		target:SetDefaultCredits()
 
 		target.mateSubRole = attacker:GetSubRole()
 
@@ -156,7 +155,6 @@ if SERVER then
 					local newRole = siki.mateSubRole or (IsValid(mate) and mate:GetSubRole())
 					if newRole then
 						siki:SetRole(newRole, TEAM_NOCHANGE)
-						siki:SetDefaultCredits()
 
 						SendFullStateUpdate()
 					end
@@ -175,7 +173,6 @@ if SERVER then
 					local newRole = siki.mateSubRole or ply:GetSubRole()
 					if newRole then
 						siki:SetRole(newRole, TEAM_NOCHANGE)
-						siki:SetDefaultCredits()
 
 						SendFullStateUpdate()
 					end

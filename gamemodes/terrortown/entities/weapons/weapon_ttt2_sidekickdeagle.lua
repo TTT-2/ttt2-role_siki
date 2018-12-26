@@ -1,7 +1,5 @@
 SWEP.Base = "weapon_tttbase"
 
-SWEP.MinPlayers = 1
-
 SWEP.Spawnable = true
 SWEP.AutoSpawnable = false
 SWEP.AdminSpawnable = true
