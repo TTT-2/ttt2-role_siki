@@ -278,15 +278,15 @@ else -- CLIENT
 
 	-- Modify colors
 	hook.Add("TTT2ModifyRoleColor", "SikiModifyRoleColor", function(ply)
-		GetDarkenMateColor(ply, "color")
+		return GetDarkenMateColor(ply, "color")
 	end)
 
 	hook.Add("TTT2ModifyRoleDkColor", "SikiModifyRoleDkColor", function(ply)
-		GetDarkenMateColor(ply, "dkcolor")
+		return GetDarkenMateColor(ply, "dkcolor")
 	end)
 
 	hook.Add("TTT2ModifyRoleBgColor", "SikiModifyRoleBgColor", function(ply)
-		GetDarkenMateColor(ply, "bgcolor")
+		return GetDarkenMateColor(ply, "bgcolor")
 	end)
 end
 
