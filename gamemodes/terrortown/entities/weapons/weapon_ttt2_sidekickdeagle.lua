@@ -57,6 +57,7 @@ SWEP.Kind = WEAPON_EQUIP2
 SWEP.CanBuy = {}
 SWEP.LimitedStock = true
 SWEP.globalLimited = true
+SWEP.NoRandom = true
 
 -- view / world
 SWEP.ViewModel = "models/weapons/cstrike/c_pist_deagle.mdl"
