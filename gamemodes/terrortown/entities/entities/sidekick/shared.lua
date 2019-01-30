@@ -265,16 +265,17 @@ else -- CLIENT
 		end
 	end)
 
-	local function tmpfnc(ply, mate)
+	local function tmpfnc(ply, mate, colorTable)
 		if IsValid(mate) and mate:IsPlayer() then
-			return table.Copy(mate:GetSubRoleData().color)
+			return table.Copy(mate:GetSubRoleData()[colorTable])
 		elseif ply.mateSubRole then
-			return table.Copy(GetRoleByIndex(ply.mateSubRole).color)
+			return table.Copy(GetRoleByIndex(ply.mateSubRole)[colorTable])
 		end
 	end
 	
-	local function GetDarkenMateColor(ply)
+	local function GetDarkenMateColor(ply, colorTable)
 		ply = ply or LocalPlayer()
+
 		if IsValid(ply) and ply.GetSubRole and ply:GetSubRole() and ply:GetSubRole() == ROLE_SIDEKICK then
 			local col
 			local deadSubRole = ply.lastMateSubRole
@@ -282,12 +283,12 @@ else -- CLIENT
 
 			if not ply:Alive() and deadSubRole then
 				if IsValid(mate) and mate:IsPlayer() and mate:IsInTeam(ply) and not mate:GetSubRoleData().unknownTeam then
-					col = tmpfnc(ply, mate)
+					col = tmpfnc(ply, mate, colorTable)
 				else
-					col = table.Copy(GetRoleByIndex(deadSubRole).color)
+					col = table.Copy(GetRoleByIndex(deadSubRole)[colorTable])
 				end
 			else
-				col = tmpfnc(ply, mate)
+				col = tmpfnc(ply, mate, colorTable)
 			end
 			
 			return GetDarkenColor(col)
@@ -295,18 +296,16 @@ else -- CLIENT
 	end
 
 	-- Modify colors
-	hook.Add("TTTScoreboardRowColorForPlayer", "ModifySikiSBColor", GetDarkenMateColor)
-	hook.Add("TTT2ModifyWeaponColors", "SikiModifyWeaponColors", GetDarkenMateColor)
-	hook.Add("TTT2ModifyRoleBGColor", "SikiModifyRoleBGColor", GetDarkenMateColor)
-	hook.Add("TTT2ModifyTargetIDColor", "SikiModifyTargetIDColor", GetDarkenMateColor)
-	
-	hook.Add("TTT2ModifyRoleIconColor", "SikiModifyRoleIconColors", function(ply)
-		local col = GetDarkenMateColor(ply)
-		if col then
-			col.a = 200
+	hook.Add("TTT2ModifyRoleColor", "SikiModifyRoleColor", function(ply)
+		return GetDarkenMateColor(ply, "color")
+	end)
 
-			return col
-		end
+	hook.Add("TTT2ModifyRoleDkColor", "SikiModifyRoleDkColor", function(ply)
+		return GetDarkenMateColor(ply, "dkcolor")
+	end)
+
+	hook.Add("TTT2ModifyRoleBgColor", "SikiModifyRoleBgColor", function(ply)
+		return GetDarkenMateColor(ply, "bgcolor")
 	end)
 	
 	hook.Add("TTT2ModifyBodyFoundRoleIcon", "SikiModifyBodyFoundRoleIcon", function(nick)
@@ -318,7 +317,7 @@ else -- CLIENT
 		end	
 		
 		if IsValid(ply) then
-			return GetDarkenMateColor(ply)
+			return ply:GetRoleColor()
 		end
 	end)
 end
