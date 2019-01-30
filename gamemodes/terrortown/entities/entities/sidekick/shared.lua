@@ -308,7 +308,7 @@ else -- CLIENT
 		return GetDarkenMateColor(ply, "bgcolor")
 	end)
 	
-	hook.Add("TTT2ModifyBodyFoundRoleIcon", "SikiModifyBodyFoundRoleIcon", function(nick)
+	hook.Add("TTT2ModifyBodyFoundRoleColor", "SikiModifyBodyFoundRoleIcon", function(nick)
 		local ply = nil
 		for _, v in ipairs(player.GetAll()) do
 			if v:Nick() == nick then
