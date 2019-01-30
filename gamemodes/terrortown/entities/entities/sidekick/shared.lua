@@ -104,7 +104,7 @@ function plymeta:GetSidekicks()
 end
 
 function GetSidekickTableForRole(role)
-	if role != nil && istable(SYNC_EQUIP) then
+	if role != nil then
 		local siki_deagle = GetEquipmentByName("weapon_ttt2_sidekickdeagle")
 		if istable(siki_deagle) and istable(siki_deagle.CanBuy) and table.HasValue(siki_deagle.CanBuy, role.index) then
 			local siki_mod_table =  table.Copy(GetRoleByIndex(ROLE_SIDEKICK))
