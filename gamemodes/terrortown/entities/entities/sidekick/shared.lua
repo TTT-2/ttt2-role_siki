@@ -275,7 +275,6 @@ else -- CLIENT
 	
 	local function GetDarkenMateColor(ply)
 		ply = ply or LocalPlayer()
-
 		if IsValid(ply) and ply.GetSubRole and ply:GetSubRole() and ply:GetSubRole() == ROLE_SIDEKICK then
 			local col
 			local deadSubRole = ply.lastMateSubRole
@@ -299,13 +298,27 @@ else -- CLIENT
 	hook.Add("TTTScoreboardRowColorForPlayer", "ModifySikiSBColor", GetDarkenMateColor)
 	hook.Add("TTT2ModifyWeaponColors", "SikiModifyWeaponColors", GetDarkenMateColor)
 	hook.Add("TTT2ModifyRoleBGColor", "SikiModifyRoleBGColor", GetDarkenMateColor)
-
+	hook.Add("TTT2ModifyTargetIDColor", "SikiModifyTargetIDColor", GetDarkenMateColor)
+	
 	hook.Add("TTT2ModifyRoleIconColor", "SikiModifyRoleIconColors", function(ply)
 		local col = GetDarkenMateColor(ply)
 		if col then
 			col.a = 200
 
 			return col
+		end
+	end)
+	
+	hook.Add("TTT2ModifyBodyFoundRoleIcon", "SikiModifyBodyFoundRoleIcon", function(nick)
+		local ply = nil
+		for _, v in ipairs(player.GetAll()) do
+			if v:Nick() == nick then
+				ply = v
+			end
+		end	
+		
+		if IsValid(ply) then
+			return GetDarkenMateColor(ply)
 		end
 	end)
 end
