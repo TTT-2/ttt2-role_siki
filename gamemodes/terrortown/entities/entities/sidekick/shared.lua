@@ -57,22 +57,20 @@ if CLIENT then
 	end)
 end
 
-
-local function GetDarkenColor(color)
+function GetDarkenColor(color)
+	if not istable(color) then return end
 	local col = table.Copy(color)
-	if col then
-		-- darken color
-		for _, v in ipairs{"r", "g", "b"} do
-			col[v] = col[v] - 60
-			if col[v] < 0 then
-				col[v] = 0
-			end
+	-- darken color
+	for _, v in ipairs{"r", "g", "b"} do
+		col[v] = col[v] - 60
+		if col[v] < 0 then
+			col[v] = 0
 		end
-
-		col.a = 255
-
-		return col
 	end
+
+	col.a = 255
+
+	return col
 end
 
 function plymeta:IsSidekick()
@@ -101,19 +99,6 @@ function plymeta:GetSidekicks()
 	end
 
 	return tmp
-end
-
-function GetSidekickTableForRole(role)
-	if role != nil then
-		local siki_deagle = GetEquipmentByName("weapon_ttt2_sidekickdeagle")
-		if istable(siki_deagle) and istable(siki_deagle.CanBuy) and table.HasValue(siki_deagle.CanBuy, role.index) then
-			local siki_mod_table =  table.Copy(GetRoleByIndex(ROLE_SIDEKICK))
-			siki_mod_table.color = GetDarkenColor(role.color)
-			siki_mod_table.dkcolor = GetDarkenColor(role.dkcolor)
-			siki_mod_table.bgcolor = GetDarkenColor(role.bgcolor)
-			return siki_mod_table
-		end
-	end
 end
 
 function HealPlayer(ply)
