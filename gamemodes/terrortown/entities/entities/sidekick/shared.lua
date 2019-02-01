@@ -73,6 +73,36 @@ function GetDarkenColor(color)
 	return col
 end
 
+local function tmpfnc(ply, mate, colorTable)
+	if IsValid(mate) and mate:IsPlayer() then
+		return table.Copy(mate:GetSubRoleData()[colorTable])
+	elseif ply.mateSubRole then
+		return table.Copy(GetRoleByIndex(ply.mateSubRole)[colorTable])
+	end
+end
+
+local function GetDarkenMateColor(ply, colorTable)
+	ply = ply or LocalPlayer()
+
+	if IsValid(ply) and ply.GetSubRole and ply:GetSubRole() and ply:GetSubRole() == ROLE_SIDEKICK then
+		local col
+		local deadSubRole = ply.lastMateSubRole
+		local mate = ply:GetSidekickMate()
+
+		if not ply:Alive() and deadSubRole then
+			if IsValid(mate) and mate:IsPlayer() and mate:IsInTeam(ply) and not mate:GetSubRoleData().unknownTeam then
+				col = tmpfnc(ply, mate, colorTable)
+			else
+				col = table.Copy(GetRoleByIndex(deadSubRole)[colorTable])
+			end
+		else
+			col = tmpfnc(ply, mate, colorTable)
+		end
+		
+		return GetDarkenColor(col)
+	end
+end
+
 function plymeta:IsSidekick()
 	return IsValid(self:GetNWEntity("binded_sidekick", nil))
 end
@@ -249,42 +279,8 @@ else -- CLIENT
 			ply.lastMateSubRole = net.ReadUInt(ROLE_BITS)
 		end
 	end)
-
-	local function tmpfnc(ply, mate, colorTable)
-		if IsValid(mate) and mate:IsPlayer() then
-			return table.Copy(mate:GetSubRoleData()[colorTable])
-		elseif ply.mateSubRole then
-			return table.Copy(GetRoleByIndex(ply.mateSubRole)[colorTable])
-		end
-	end
 	
-	local function GetDarkenMateColor(ply, colorTable)
-		ply = ply or LocalPlayer()
-
-		if IsValid(ply) and ply.GetSubRole and ply:GetSubRole() and ply:GetSubRole() == ROLE_SIDEKICK then
-			local col
-			local deadSubRole = ply.lastMateSubRole
-			local mate = ply:GetSidekickMate()
-
-			if not ply:Alive() and deadSubRole then
-				if IsValid(mate) and mate:IsPlayer() and mate:IsInTeam(ply) and not mate:GetSubRoleData().unknownTeam then
-					col = tmpfnc(ply, mate, colorTable)
-				else
-					col = table.Copy(GetRoleByIndex(deadSubRole)[colorTable])
-				end
-			else
-				col = tmpfnc(ply, mate, colorTable)
-			end
-			
-			return GetDarkenColor(col)
-		end
-	end
-
 	-- Modify colors
-	hook.Add("TTT2ModifyRoleColor", "SikiModifyRoleColor", function(ply)
-		return GetDarkenMateColor(ply, "color")
-	end)
-
 	hook.Add("TTT2ModifyRoleDkColor", "SikiModifyRoleDkColor", function(ply)
 		return GetDarkenMateColor(ply, "dkcolor")
 	end)
@@ -306,6 +302,11 @@ else -- CLIENT
 		end
 	end)
 end
+
+--modify role colors on both client and server
+hook.Add("TTT2ModifyRoleColor", "SikiModifyRoleColor", function(ply)
+	return GetDarkenMateColor(ply, "color")
+end)
 
 hook.Add("TTTPrepareRound", "SikiPrepareRound", function()
 	for _, ply in ipairs(player.GetAll()) do
