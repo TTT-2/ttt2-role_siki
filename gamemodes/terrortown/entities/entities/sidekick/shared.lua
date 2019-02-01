@@ -288,19 +288,6 @@ else -- CLIENT
 	hook.Add("TTT2ModifyRoleBgColor", "SikiModifyRoleBgColor", function(ply)
 		return GetDarkenMateColor(ply, "bgcolor")
 	end)
-	
-	hook.Add("TTT2ModifyBodyFoundRoleColor", "SikiModifyBodyFoundRoleIcon", function(nick)
-		local ply = nil
-		for _, v in ipairs(player.GetAll()) do
-			if v:Nick() == nick then
-				ply = v
-			end
-		end	
-		
-		if IsValid(ply) then
-			return ply:GetRoleColor()
-		end
-	end)
 end
 
 --modify role colors on both client and server
