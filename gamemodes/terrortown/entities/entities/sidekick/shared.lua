@@ -75,7 +75,7 @@ end
 
 local function tmpfnc(ply, mate, colorTable)
 	if IsValid(mate) and mate:IsPlayer() then
-		return table.Copy(mate:GetSubRoleData()[colorTable])
+		return table.Copy(select(2, pcall(mate[colorTable], mate)))
 	elseif ply.mateSubRole then
 		return table.Copy(GetRoleByIndex(ply.mateSubRole)[colorTable])
 	end
@@ -98,7 +98,7 @@ local function GetDarkenMateColor(ply, colorTable)
 		else
 			col = tmpfnc(ply, mate, colorTable)
 		end
-		
+
 		return GetDarkenColor(col)
 	end
 end
@@ -282,17 +282,17 @@ else -- CLIENT
 	
 	-- Modify colors
 	hook.Add("TTT2ModifyRoleDkColor", "SikiModifyRoleDkColor", function(ply)
-		return GetDarkenMateColor(ply, "dkcolor")
+		return GetDarkenMateColor(ply, "GetRoleDkColor")
 	end)
 
 	hook.Add("TTT2ModifyRoleBgColor", "SikiModifyRoleBgColor", function(ply)
-		return GetDarkenMateColor(ply, "bgcolor")
+		return GetDarkenMateColor(ply, "GetRoleBgColor")
 	end)
 end
 
 --modify role colors on both client and server
 hook.Add("TTT2ModifyRoleColor", "SikiModifyRoleColor", function(ply)
-	return GetDarkenMateColor(ply, "color")
+	return GetDarkenMateColor(ply, "GetRoleColor")
 end)
 
 hook.Add("TTTPrepareRound", "SikiPrepareRound", function()
