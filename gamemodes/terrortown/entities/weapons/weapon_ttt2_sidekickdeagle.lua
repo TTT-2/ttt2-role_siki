@@ -75,19 +75,18 @@ function SWEP:OnDrop()
 end
 
 function ShootSidekick(target, dmginfo)
-	if not IsValid(target) then return end
 	local attacker = dmginfo:GetAttacker()
 	
-	if not attacker:IsPlayer() or not target:IsPlayer() then return end
-	if not IsValid(attacker:GetActiveWeapon()) then return end
-	if not attacker:IsTerror() or not target:IsTerror() then return end
+	if not attacker:IsPlayer() or not target:IsPlayer() or not IsValid(attacker:GetActiveWeapon()) 
+		or not attacker:IsTerror() or not IsValid(target) or not target:IsTerror() then return end
 
-	if target:GetRole() == ROLE_JACKAL or target:GetRole() == ROLE_SIDEKICK then
+	if target:GetSubRole() == ROLE_JACKAL or target:GetSubRole() == ROLE_SIDEKICK then
 		attacker:PrintMessage(HUD_PRINTTALK, "You can't shoot a Jackal/Sidekick as Sidekick!")
 		return
 	end
 
 	AddSidekick(target, attacker)
+	
 	net.Start("tttSidekickMSG")
 	
 	net.WriteEntity(target)
@@ -99,18 +98,17 @@ end
 
 if SERVER then
 	hook.Add("ScalePlayerDamage", "SidekickHitReg", function(ply, hitgroup, dmginfo)
-		if GetRoundState() != ROUND_ACTIVE then return end
 		local attacker = dmginfo:GetAttacker()
-		if !IsValid(attacker) then return end
-		if !IsValid(attacker:GetActiveWeapon()) then return end
+		if GetRoundState() ~= ROUND_ACTIVE or not attacker or not IsValid(attacker) 
+			or not IsValid(attacker:GetActiveWeapon()) then return end
 		
 		local weap = attacker:GetActiveWeapon()
 		
-		if weap:GetClass() == "weapon_ttt2_sidekickdeagle" then
-			ShootSidekick(ply, dmginfo)
-			dmginfo:SetDamage(0)
-			return true
-		end
+		if weap:GetClass() ~= "weapon_ttt2_sidekickdeagle" then return end
+		
+		ShootSidekick(ply, dmginfo)
+		dmginfo:SetDamage(0)
+		return true
 	end)
 end
 
@@ -126,6 +124,7 @@ if CLIENT then
 	net.Receive("tttSidekickMSG", function(len)
 		local target = net.ReadEntity()
 		
+		if not target or not IsValid(target) then return end
 		
 		chat.AddText(Color(0, 255, 255),"Successfully shot ", Color(255, 0, 0), target:GetName(), Color(0, 255, 255), " as Sidekick")
 		
