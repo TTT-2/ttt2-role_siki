@@ -13,6 +13,8 @@ if SERVER then
 	AddCSLuaFile()
 
 	resource.AddFile("materials/vgui/ttt/icon_sidekickdeagle.vmt")
+	
+	util.AddNetworkString("tttSidekickMSG")
 else
 	hook.Add("Initialize", "TTTInitSikiDeagleLang", function()
 		LANG.AddToLanguage("English", "ttt2_weapon_sidekickdeagle_desc", "Shoot a player to make him your sidekick.")
@@ -40,7 +42,7 @@ SWEP.Primary.Delay = 1
 SWEP.Primary.Recoil = 6
 SWEP.Primary.Automatic = false
 SWEP.Primary.NumShots = 1
-SWEP.Primary.Damage = 0
+SWEP.Primary.Damage = 1
 SWEP.Primary.Cone = 0.00001
 SWEP.Primary.Ammo = ""
 SWEP.Primary.ClipSize = 1
@@ -72,38 +74,46 @@ function SWEP:OnDrop()
 	self:Remove()
 end
 
-function SWEP:ShootBullet(dmg, recoil, numbul, cone)
-	if SIDEKICK then
-		self:SendWeaponAnim(self.PrimaryAnim)
+function ShootSidekick(target, dmginfo)
+	if not IsValid(target) then return end
+	local attacker = dmginfo:GetAttacker()
+	
+	if not attacker:IsPlayer() or not target:IsPlayer() then return end
+	if not IsValid(attacker:GetActiveWeapon()) then return end
+	if not attacker:IsTerror() or not target:IsTerror() then return end
 
-		self.Owner:MuzzleFlash()
-		self.Owner:SetAnimation(PLAYER_ATTACK1)
-
-		if not IsFirstTimePredicted() then return end
-
-		local bullet = {}
-		bullet.Num = 1
-		bullet.Src = self.Owner:GetShootPos()
-		bullet.Dir = self.Owner:GetAimVector()
-		bullet.Spread = Vector(0.00001, 0.00001, 0)
-		bullet.Force = 0
-		bullet.Damage = dmg
-
-		if SERVER then
-			bullet.Callback = function(atk, tr, dmginfo)
-				local target = tr.Entity
-
-				if target and IsValid(target) and target:IsPlayer() and target:IsTerror() and target:IsActive() then
-					dmginfo:ScaleDamage(0)
-
-					AddSidekick(target, atk)
-				end
-			end
-		end
-
-		self.Owner:FireBullets(bullet)
+	if target:GetRole() == ROLE_JACKAL or target:GetRole() == ROLE_SIDEKICK then
+		attacker:PrintMessage(HUD_PRINTTALK, "You can't shoot a Jackal/Sidekick as Sidekick!")
+		return
 	end
+
+	AddSidekick(target, attacker)
+	net.Start("tttSidekickMSG")
+	
+	net.WriteEntity(target)
+	
+	net.Send(attacker)
+	
 end
+
+
+if SERVER then
+	hook.Add("ScalePlayerDamage", "SidekickHitReg", function(ply, hitgroup, dmginfo)
+		if GetRoundState() != ROUND_ACTIVE then return end
+		local attacker = dmginfo:GetAttacker()
+		if !IsValid(attacker) then return end
+		if !IsValid(attacker:GetActiveWeapon()) then return end
+		
+		local weap = attacker:GetActiveWeapon()
+		
+		if weap:GetClass() == "weapon_ttt2_sidekickdeagle" then
+			ShootSidekick(ply, dmginfo)
+			dmginfo:SetDamage(0)
+			return true
+		end
+	end)
+end
+
 
 -- auto add sidekick weapon into jackal shop
 hook.Add("LoadedFallbackShops", "SidekickDeagleAddToShop", function()
@@ -111,3 +121,13 @@ hook.Add("LoadedFallbackShops", "SidekickDeagleAddToShop", function()
 		AddWeaponIntoFallbackTable("weapon_ttt2_sidekickdeagle", JACKAL)
 	end
 end)
+
+if CLIENT then
+	net.Receive("tttSidekickMSG", function(len)
+		local target = net.ReadEntity()
+		
+		
+		chat.AddText(Color(0, 255, 255),"Successfully shot ", Color(255, 0, 0), target:GetName(), Color(0, 255, 255), " as Sidekick")
+		
+	end)
+end
