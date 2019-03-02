@@ -100,7 +100,7 @@ if SERVER then
 	hook.Add("ScalePlayerDamage", "SidekickHitReg", function(ply, hitgroup, dmginfo)
 		local attacker = dmginfo:GetAttacker()
 		if GetRoundState() ~= ROUND_ACTIVE or not attacker or not IsValid(attacker) 
-			or not IsValid(attacker:GetActiveWeapon()) then return end
+			or not attacker:IsPlayer() or not IsValid(attacker:GetActiveWeapon()) then return end
 		
 		local weap = attacker:GetActiveWeapon()
 		
