@@ -9,25 +9,21 @@ local protectionTime = CreateConVar("ttt2_siki_protection_time", 1, {FCVAR_NOTIF
 local plymeta = FindMetaTable("Player")
 if not plymeta then return end
 
--- important to add roles with this function,
--- because it does more than just access the array ! e.g. updating other arrays
--- this role doesn't have a team
-InitCustomRole("SIDEKICK", { -- first param is access for ROLES array => SIDEKICK or ROLES["SIDEKICK"]
-		color = Color(0, 0, 0, 255), -- ...
-		dkcolor = Color(0, 0, 0, 255), -- ...
-		bgcolor = Color(255, 255, 255, 255), -- ...
-		abbr = "siki", -- abbreviation
-		defaultEquipment = SPECIAL_EQUIPMENT, -- here you can set up your own default equipment
-		surviveBonus = 1, -- bonus multiplier for every survive while another player was killed
-		scoreKillsMultiplier = 5, -- multiplier for kill of player of another team
-		scoreTeamKillsMultiplier = -16, -- multiplier for teamkill
-		preventWin = true,
-		notSelectable = true, -- role cant be selected!
-		disableSync = true -- just sync if body got found or round is over
-	},
-	{
-		shopFallback = SHOP_FALLBACK_TRAITOR
-})
+ROLE.color = Color(0, 0, 0, 255) -- ...
+ROLE.dkcolor = Color(0, 0, 0, 255) -- ...
+ROLE.bgcolor = Color(255, 255, 255, 255) -- ...
+ROLE.abbr = "siki" -- abbreviation
+ROLE.defaultEquipment = SPECIAL_EQUIPMENT -- here you can set up your own default equipment
+ROLE.surviveBonus = 1 -- bonus multiplier for every survive while another player was killed
+ROLE.scoreKillsMultiplier = 5 -- multiplier for kill of player of another team
+ROLE.scoreTeamKillsMultiplier = -16 -- multiplier for teamkill
+ROLE.preventWin = true
+ROLE.notSelectable = true -- role cant be selected!
+ROLE.disableSync = true -- just sync if body got found or round is over
+
+ROLE.conVarData = {
+	shopFallback = SHOP_FALLBACK_TRAITOR
+}
 
 hook.Add("TTTUlxDynamicRCVars", "TTTUlxDynamicSikiCVars", function(tbl)
 	tbl[ROLE_SIDEKICK] = tbl[ROLE_SIDEKICK] or {}
@@ -104,7 +100,7 @@ local function GetDarkenMateColor(ply, colorTable)
 		else
 			col = tmpfnc(ply, mate, colorTable)
 		end
-		
+
 		return GetDarkenColor(col)
 	end
 end
@@ -285,7 +281,7 @@ else -- CLIENT
 			ply.lastMateSubRole = net.ReadUInt(ROLE_BITS)
 		end
 	end)
-	
+
 	-- Modify colors
 	hook.Add("TTT2ModifyRoleDkColor", "SikiModifyRoleDkColor", function(ply)
 		return GetDarkenMateColor(ply, "dkcolor")
