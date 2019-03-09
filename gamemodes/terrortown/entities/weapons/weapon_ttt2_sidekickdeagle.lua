@@ -86,7 +86,6 @@ function ShootSidekick(target, dmginfo)
 	end
 
 	AddSidekick(target, attacker)
-	
 	net.Start("tttSidekickMSG")
 	
 	net.WriteEntity(target)
@@ -99,16 +98,16 @@ end
 if SERVER then
 	hook.Add("ScalePlayerDamage", "SidekickHitReg", function(ply, hitgroup, dmginfo)
 		local attacker = dmginfo:GetAttacker()
-		if GetRoundState() ~= ROUND_ACTIVE or not attacker or not IsValid(attacker) 
-			or not attacker:IsPlayer() or not IsValid(attacker:GetActiveWeapon()) then return end
-		
+		if GetRoundState() ~= ROUND_ACTIVE or not attacker or not IsValid(attacker) or not attacker:IsPlayer() or not IsValid(attacker:GetActiveWeapon() or not dmginfo:GetInflictor() or dmginfo:GetInflictor() ~= attacker) then return end
+
+
 		local weap = attacker:GetActiveWeapon()
 		
-		if weap:GetClass() ~= "weapon_ttt2_sidekickdeagle" then return end
-		
-		ShootSidekick(ply, dmginfo)
-		dmginfo:SetDamage(0)
-		return true
+		if weap:GetClass() == "weapon_ttt2_sidekickdeagle" then
+			ShootSidekick(ply, dmginfo)
+			dmginfo:SetDamage(0)
+			return true
+		end
 	end)
 end
 
