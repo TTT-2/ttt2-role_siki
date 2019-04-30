@@ -152,7 +152,7 @@ if SERVER then
 		target.sikiTimestamp = os.time()
 		target.sikiIssuer = attacker
 
-		SendFullStateUpdate()
+		timer.Simple(0.1, function() SendFullStateUpdate() end)
 	end
 
 	hook.Add("PlayerShouldTakeDamage", "SikiProtectionTime", function(ply, atk)
