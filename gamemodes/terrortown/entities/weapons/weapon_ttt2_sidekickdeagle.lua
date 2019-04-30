@@ -13,7 +13,7 @@ if SERVER then
 	AddCSLuaFile()
 
 	resource.AddFile("materials/vgui/ttt/icon_sidekickdeagle.vmt")
-	
+
 	util.AddNetworkString("tttSidekickMSG")
 else
 	hook.Add("Initialize", "TTTInitSikiDeagleLang", function()
@@ -70,14 +70,16 @@ SWEP.Primary.Sound = Sound("Weapon_Deagle.Single")
 SWEP.IronSightsPos = Vector(-6.361, -3.701, 2.15)
 SWEP.IronSightsAng = Vector(0, 0, 0)
 
+SWEP.notBuyable = true
+
 function SWEP:OnDrop()
 	self:Remove()
 end
 
 function ShootSidekick(target, dmginfo)
 	local attacker = dmginfo:GetAttacker()
-	
-	if not attacker:IsPlayer() or not target:IsPlayer() or not IsValid(attacker:GetActiveWeapon()) 
+
+	if not attacker:IsPlayer() or not target:IsPlayer() or not IsValid(attacker:GetActiveWeapon())
 		or not attacker:IsTerror() or not IsValid(target) or not target:IsTerror() then return end
 
 	if target:GetSubRole() == ROLE_JACKAL or target:GetSubRole() == ROLE_SIDEKICK then
@@ -86,26 +88,26 @@ function ShootSidekick(target, dmginfo)
 	end
 
 	AddSidekick(target, attacker)
-	
+
 	net.Start("tttSidekickMSG")
-	
+
 	net.WriteEntity(target)
-	
+
 	net.Send(attacker)
-	
+
 end
 
 
 if SERVER then
 	hook.Add("ScalePlayerDamage", "SidekickHitReg", function(ply, hitgroup, dmginfo)
 		local attacker = dmginfo:GetAttacker()
-		if GetRoundState() ~= ROUND_ACTIVE or not attacker or not IsValid(attacker) 
+		if GetRoundState() ~= ROUND_ACTIVE or not attacker or not IsValid(attacker)
 			or not attacker:IsPlayer() or not IsValid(attacker:GetActiveWeapon()) then return end
-		
+
 		local weap = attacker:GetActiveWeapon()
-		
+
 		if weap:GetClass() ~= "weapon_ttt2_sidekickdeagle" then return end
-		
+
 		ShootSidekick(ply, dmginfo)
 		dmginfo:SetDamage(0)
 		return true
@@ -123,10 +125,10 @@ end)
 if CLIENT then
 	net.Receive("tttSidekickMSG", function(len)
 		local target = net.ReadEntity()
-		
+
 		if not target or not IsValid(target) then return end
-		
+
 		chat.AddText(Color(0, 255, 255),"Successfully shot ", Color(255, 0, 0), target:GetName(), Color(0, 255, 255), " as Sidekick")
-		
+
 	end)
 end
