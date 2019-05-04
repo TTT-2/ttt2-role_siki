@@ -1,13 +1,18 @@
 if SERVER then
 	AddCSLuaFile()
 
-	resource.AddFile("materials/vgui/ttt/dynamic/roles/icon_siki.vmt")
-end
+	util.AddNetworkString("TTT2SikiSyncHeroes")
 
-local protectionTime = CreateConVar("ttt2_siki_protection_time", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE})
+	resource.AddFile("materials/vgui/ttt/dynamic/roles/icon_siki.vmt")
+	
+	CreateConVar("ttt2_siki_protection_time", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE})
+	CreateConVar("ttt2_siki_mode", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE})
+end
 
 local plymeta = FindMetaTable("Player")
 if not plymeta then return end
+
+ROLE.Base = "ttt_role_base"
 
 ROLE.color = Color(0, 0, 0, 255) -- ...
 ROLE.dkcolor = Color(0, 0, 0, 255) -- ...
@@ -20,8 +25,12 @@ ROLE.scoreTeamKillsMultiplier = -16 -- multiplier for teamkill
 ROLE.preventWin = true
 ROLE.notSelectable = true -- role cant be selected!
 ROLE.disableSync = true -- just sync if body got found or round is over
+ROLE.preventFindCredits = true
+ROLE.preventKillCredits = true
+ROLE.preventTraitorAloneCredits = true
 
 ROLE.conVarData = {
+	credits = 1, -- the starting credits of a specific role
 	shopFallback = SHOP_FALLBACK_TRAITOR
 }
 
@@ -29,6 +38,7 @@ hook.Add("TTTUlxDynamicRCVars", "TTTUlxDynamicSikiCVars", function(tbl)
 	tbl[ROLE_SIDEKICK] = tbl[ROLE_SIDEKICK] or {}
 
 	table.insert(tbl[ROLE_SIDEKICK], {cvar = "ttt2_siki_protection_time", slider = true, min = 0, max = 60, desc = "Protection Time for new Sidekick (Def. 1)"})
+	table.insert(tbl[ROLE_SIDEKICK], {cvar = "ttt2_siki_mode", checkbox = true, desc = "Normal mode for the Sidekick (Def. 1). 1 = Sidekick -> Jackal. 2 = Sidekick receive targets"})
 end)
 
 -- if sync of roles has finished
@@ -50,6 +60,19 @@ if CLIENT then
 		LANG.AddToLanguage("Deutsch", "ttt2_desc_" .. SIDEKICK.name, [[Du musst mit deinem Mate gewinnen!]])
 		LANG.AddToLanguage("Deutsch", "body_found_" .. SIDEKICK.abbr, "Er war ein Sidekick...")
 		LANG.AddToLanguage("Deutsch", "search_role_" .. SIDEKICK.abbr, "Diese Person war ein Sidekick!")
+	end)
+else
+	hook.Add("TTT2RolesLoaded", "AddCrystalKnifeToDefaultSikiLO", function()
+		if HEROES then
+			local wep = weapons.GetStored("weapon_ttt_crystalknife")
+			if wep then
+				wep.InLoadoutFor = wep.InLoadoutFor or {}
+
+				if not table.HasValue(wep.InLoadoutFor, ROLE_SIDEKICK) then
+					table.insert(wep.InLoadoutFor, ROLE_SIDEKICK)
+				end
+			end
+		end
 	end)
 end
 
@@ -152,11 +175,13 @@ if SERVER then
 		target.sikiTimestamp = os.time()
 		target.sikiIssuer = attacker
 
-		timer.Simple(0.1, function() SendFullStateUpdate() end)
+		timer.Simple(0.1, function() 
+			SendFullStateUpdate() 
+		end)
 	end
 
 	hook.Add("PlayerShouldTakeDamage", "SikiProtectionTime", function(ply, atk)
-		local pTime = protectionTime:GetInt()
+		local pTime = GetConVar("ttt2_siki_protection_time"):GetInt()
 
 		if pTime > 0 and IsValid(atk) and atk:IsPlayer()
 		and ply:IsActive() and atk:IsActive()
@@ -196,15 +221,19 @@ if SERVER then
 		end
 
 		if sikis then
+			local enabled = GetConVar("ttt2_siki_mode"):GetBool()
+			
 			for _, siki in ipairs(sikis) do
 				if IsValid(siki) and siki:IsPlayer() and siki:IsActive() then
 					siki:SetNWEntity("binded_sidekick", nil)
 
-					local newRole = siki.mateSubRole or (IsValid(mate) and mate:GetSubRole())
-					if newRole then
-						siki:SetRole(newRole, TEAM_NOCHANGE)
+					if enabled then
+						local newRole = siki.mateSubRole or (IsValid(mate) and mate:GetSubRole())
+						if newRole then
+							siki:SetRole(newRole, TEAM_NOCHANGE)
 
-						SendFullStateUpdate()
+							SendFullStateUpdate()
+						end
 					end
 				end
 			end
@@ -212,21 +241,23 @@ if SERVER then
 	end)
 
 	hook.Add("PostPlayerDeath", "PlayerDeathChangeSiki", function(ply)
-		local sikis = ply:GetSidekicks()
-		if sikis then
-			for _, siki in ipairs(sikis) do
-				if IsValid(siki) and siki:IsActive() then
-					siki:SetNWEntity("binded_sidekick", nil)
+		if GetConVar("ttt2_siki_mode"):GetBool() then
+			local sikis = ply:GetSidekicks()
+			if sikis then
+				for _, siki in ipairs(sikis) do
+					if IsValid(siki) and siki:IsActive() then
+						siki:SetNWEntity("binded_sidekick", nil)
 
-					local newRole = siki.mateSubRole or ply:GetSubRole()
-					if newRole then
-						siki:SetRole(newRole, TEAM_NOCHANGE)
+						local newRole = siki.mateSubRole or ply:GetSubRole()
+						if newRole then
+							siki:SetRole(newRole, TEAM_NOCHANGE)
 
-						SendFullStateUpdate()
-					end
+							SendFullStateUpdate()
+						end
 
-					if #sikis == 1 then -- a player can just be binded with one player as sidekick
-						AddSidekick(ply, siki)
+						if #sikis == 1 then -- a player can just be binded with one player as sidekick
+							AddSidekick(ply, siki)
+						end
 					end
 				end
 			end
@@ -307,3 +338,41 @@ hook.Add("TTTPrepareRound", "SikiPrepareRound", function()
 		end
 	end
 end)
+
+-- SIDEKICK HITMAN FUNCTION
+if SERVER then
+	hook.Add("TTT2CheckCreditAward", "TTTHHitmanMod", function(victim, attacker)
+		if IsValid(attacker) and attacker:IsPlayer() and attacker:IsActive() and attacker:GetSubRole() == ROLE_SIDEKICK and not GetConVar("ttt2_siki_mode"):GetBool() then
+			return false -- prevent awards
+		end
+	end)
+
+	-- HEROES syncing
+	hook.Add("TTTHPostReceiveHeroes", "TTTHHitmanMod", function()
+		for _, siki in ipairs(player.GetAll()) do
+			if siki:IsActive() and siki:GetSubRole() == ROLE_SIDEKICK then
+				for _, ply in ipairs(player.GetAll()) do
+					net.Start("TTT2SikiSyncHeroes")
+					net.WriteEntity(ply)
+					net.WriteUInt(ply:GetHero() or 0, HERO_BITS)
+					net.Send(hitman)
+				end
+			end
+		end
+	end)
+else
+	net.Receive("TTT2SikiSyncHeroes", function(len)
+		local target = net.ReadEntity()
+		local hr = net.ReadUInt(HERO_BITS)
+
+		if hr == 0 then
+			hr = nil
+		end
+
+		target:SetHero(hr)
+	end)
+end
+
+if SERVER then
+	include("target.lua")
+end
