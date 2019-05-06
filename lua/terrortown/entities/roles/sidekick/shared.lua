@@ -4,7 +4,7 @@ if SERVER then
 	util.AddNetworkString("TTT2SikiSyncHeroes")
 
 	resource.AddFile("materials/vgui/ttt/dynamic/roles/icon_siki.vmt")
-	
+
 	CreateConVar("ttt2_siki_protection_time", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE})
 	CreateConVar("ttt2_siki_mode", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE})
 end
@@ -175,9 +175,7 @@ if SERVER then
 		target.sikiTimestamp = os.time()
 		target.sikiIssuer = attacker
 
-		timer.Simple(0.1, function() 
-			SendFullStateUpdate() 
-		end)
+		timer.Simple(0.1, SendFullStateUpdate)
 	end
 
 	hook.Add("PlayerShouldTakeDamage", "SikiProtectionTime", function(ply, atk)
@@ -222,7 +220,7 @@ if SERVER then
 
 		if sikis then
 			local enabled = GetConVar("ttt2_siki_mode"):GetBool()
-			
+
 			for _, siki in ipairs(sikis) do
 				if IsValid(siki) and siki:IsPlayer() and siki:IsActive() then
 					siki:SetNWEntity("binded_sidekick", nil)
