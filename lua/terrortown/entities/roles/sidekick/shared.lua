@@ -169,7 +169,9 @@ if SERVER then
 
 		target:SetNWEntity("binded_sidekick", attacker)
 		target:SetRole(ROLE_SIDEKICK, attacker:GetTeam())
+		local credits = target:GetCredits()
 		target:SetDefaultCredits()
+		target:SetCredits(target:GetCredits() + credits)
 
 		target.mateSubRole = attacker:GetSubRole()
 
