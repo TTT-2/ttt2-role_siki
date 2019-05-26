@@ -311,6 +311,7 @@ else -- CLIENT
 		if IsValid(ply) and ply:IsPlayer() then
 			ply.mateSubRole = net.ReadUInt(ROLE_BITS)
 			ply.lastMateSubRole = net.ReadUInt(ROLE_BITS)
+			ply:SetRoleColor(COLOR_BLACK)
 		end
 	end)
 
