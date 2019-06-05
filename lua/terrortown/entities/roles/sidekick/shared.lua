@@ -257,7 +257,7 @@ if SERVER then
 						end
 
 						if #sikis == 1 then -- a player can just be binded with one player as sidekick
-							AddSidekick(ply, siki)
+							ply.spawn_as_sidekick = siki
 						end
 					end
 				end
@@ -268,6 +268,14 @@ if SERVER then
 
 		if IsValid(mate) and not ply.lastMateSubRole then
 			ply.lastMateSubRole = ply.mateSubRole or mate:GetSubRole()
+		end
+	end)
+	
+	hook.Add("PlayerSpawn", "PlayerSpawnsAsSidekick", function(ply)
+		if ply.spawn_as_sidekick then
+			AddSidekick(ply, ply.spawn_as_sidekick)
+			
+			ply.spawn_as_sidekick = nil
 		end
 	end)
 
@@ -334,6 +342,7 @@ hook.Add("TTTPrepareRound", "SikiPrepareRound", function()
 	for _, ply in ipairs(player.GetAll()) do
 		ply.mateSubRole = nil
 		ply.lastMateSubRole = nil
+		ply.spawn_as_sidekick = nil
 
 		if SERVER then
 			ply:SetNWEntity("binded_sidekick", nil)
