@@ -123,12 +123,17 @@ hook.Add("LoadedFallbackShops", "SidekickDeagleAddToShop", function()
 end)
 
 if CLIENT then
+	hook.Add("TTT2FinishedLoading", "InitSikiMsgText", function()
+		LANG.AddToLanguage("English", "ttt2_siki_shot", "Successfully shot {name} as Sidekick!")
+		LANG.AddToLanguage("Deutsch", "ttt2_siki_shot", "Erfolgreich {name} als Sidekick geschossen!")
+	end)
+
 	net.Receive("tttSidekickMSG", function(len)
 		local target = net.ReadEntity()
 
 		if not target or not IsValid(target) then return end
 
-		chat.AddText(Color(0, 255, 255),"Successfully shot ", Color(255, 0, 0), target:GetName(), Color(0, 255, 255), " as Sidekick")
-
+		local text = LANG.GetParamTranslation("ttt2_siki_shot", {name = target:GetName()})
+		MSTACK:AddMessage(text)
 	end)
 end
