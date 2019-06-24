@@ -106,8 +106,6 @@ if SERVER then
 
 		local weap = attacker:GetActiveWeapon()
 
-		print(dmginfo:GetInflictor():GetClass())
-
 		if weap:GetClass() ~= "weapon_ttt2_sidekickdeagle" then return end
 
 		ShootSidekick(ply, dmginfo)
