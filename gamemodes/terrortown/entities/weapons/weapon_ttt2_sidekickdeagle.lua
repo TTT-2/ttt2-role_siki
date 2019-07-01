@@ -15,6 +15,8 @@ if SERVER then
 	resource.AddFile("materials/vgui/ttt/icon_sidekickdeagle.vmt")
 
 	util.AddNetworkString("tttSidekickMSG")
+	util.AddNetworkString("tttSidekickRefillCDReduced")
+	util.AddNetworkString("tttSidekickDeagleRefilled")
 else
 	hook.Add("Initialize", "TTTInitSikiDeagleLang", function()
 		LANG.AddToLanguage("English", "ttt2_weapon_sidekickdeagle_desc", "Shoot a player to make him your sidekick.")
@@ -51,7 +53,7 @@ SWEP.Primary.DefaultClip = 1
 
 -- some other stuff
 SWEP.InLoadoutFor = nil
-SWEP.AllowDrop = false
+SWEP.AllowDrop = true
 SWEP.IsSilent = false
 SWEP.NoSights = false
 SWEP.UseHands = true
@@ -72,8 +74,32 @@ SWEP.IronSightsAng = Vector(0, 0, 0)
 
 SWEP.notBuyable = true
 
+local function SidekickDeagleRefilled(wep)
+	if not IsValid(wep) then return end
+
+	STATUS:RemoveStatus("ttt2_sidekick_deagle_reloading")
+	net.Start("tttSidekickDeagleRefilled")
+	net.WriteEntity(wep)
+	net.SendToServer()
+end
+
 function SWEP:OnDrop()
 	self:Remove()
+end
+
+function SWEP:PrimaryAttack()
+	if CLIENT then 
+		STATUS:AddTimedStatus("ttt2_sidekick_deagle_reloading", 120) 
+		timer.Create("ttt2_sidekick_deagle_refill_timer", 120, 1, function()
+			SidekickDeagleRefilled(self)
+		end)
+	end
+
+	self.BaseClass.PrimaryAttack(self)
+end
+
+function SWEP:OnRemove()
+	if CLIENT then STATUS:RemoveStatus("ttt2_sidekick_deagle_reloading") end
 end
 
 function ShootSidekick(target, dmginfo)
@@ -109,8 +135,16 @@ if SERVER then
 		if weap:GetClass() ~= "weapon_ttt2_sidekickdeagle" then return end
 
 		ShootSidekick(ply, dmginfo)
+		weap:Remove()
 		dmginfo:SetDamage(0)
 		return true
+	end)
+
+	hook.Add("PlayerDeath", "SidekickDeagleRefillReduceCD", function(victim, inflictor, attacker)
+		if IsValid(attacker) and attacker:HasWeapon("weapon_ttt2_sidekickdeagle") then
+			net.Start("tttSidekickRefillCDReduced")
+			net.Send(attacker)	
+		end
 	end)
 end
 
@@ -128,6 +162,15 @@ if CLIENT then
 		LANG.AddToLanguage("Deutsch", "ttt2_siki_shot", "Erfolgreich {name} als Sidekick geschossen!")
 	end)
 
+	hook.Add("Initialize", "ttt_sidekick_deagle_reloading", function() 
+		STATUS:RegisterStatus("ttt2_sidekick_deagle_reloading", {
+			hud = Material("vgui/ttt/hud_icon_deagle.png"),
+			type = "bad",
+
+			DrawInfo = function(self) return tostring(math.Round(math.max(0, self.displaytime - CurTime()))) end
+		})
+	end)
+
 	net.Receive("tttSidekickMSG", function(len)
 		local target = net.ReadEntity()
 
@@ -135,5 +178,23 @@ if CLIENT then
 
 		local text = LANG.GetParamTranslation("ttt2_siki_shot", {name = target:GetName()})
 		MSTACK:AddMessage(text)
+	end)
+
+	net.Receive("tttSidekickRefillCDReduced", function()
+		if not timer.Exists("ttt2_sidekick_deagle_refill_timer") then return end
+
+		local timeLeft = timer.TimeLeft("ttt2_sidekick_deagle_refill_timer")
+		local newTime = math.max(timeLeft - 60, 0.1)
+		local wep = LocalPlayer():GetWeapon("weapon_ttt2_sidekickdeagle")
+		timer.Adjust("ttt2_sidekick_deagle_refill_timer", newTime, 1, function() SidekickDeagleRefilled(wep) end)
+
+		if STATUS.active["ttt2_sidekick_deagle_reloading"] then
+			STATUS.active["ttt2_sidekick_deagle_reloading"].displaytime = CurTime() + newTime
+		end
+	end)
+else
+	net.Receive("tttSidekickDeagleRefilled", function()
+		local wep = net.ReadEntity()
+		wep:SetClip1(1)
 	end)
 end
