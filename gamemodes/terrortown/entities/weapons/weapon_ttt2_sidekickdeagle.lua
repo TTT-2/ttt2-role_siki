@@ -51,11 +51,11 @@ SWEP.Primary.DefaultClip = 1
 
 -- some other stuff
 SWEP.InLoadoutFor = nil
-SWEP.AllowDrop = true
+SWEP.AllowDrop = false
 SWEP.IsSilent = false
 SWEP.NoSights = false
 SWEP.UseHands = true
-SWEP.Kind = WEAPON_EQUIP2
+SWEP.Kind = WEAPON_EXTRA
 SWEP.CanBuy = {}
 SWEP.LimitedStock = true
 SWEP.globalLimited = true
