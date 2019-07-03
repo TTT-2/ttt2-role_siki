@@ -94,7 +94,7 @@ function SWEP:PrimaryAttack()
 	if CLIENT and self:CanPrimaryAttack() and GetConVar("ttt2_siki_deagle_refill"):GetBool() then
 		local initialCD = GetConVar("ttt2_siki_deagle_refill_cd"):GetInt()
 
-		STATUS:AddTimedStatus("ttt2_sidekick_deagle_reloading", initialCD) 
+		STATUS:AddTimedStatus("ttt2_sidekick_deagle_reloading", initialCD, true) 
 		timer.Create("ttt2_sidekick_deagle_refill_timer", initialCD, 1, function()
 			SidekickDeagleRefilled(self)
 		end)
@@ -176,9 +176,10 @@ if CLIENT then
 	hook.Add("Initialize", "ttt_sidekick_deagle_reloading", function() 
 		STATUS:RegisterStatus("ttt2_sidekick_deagle_reloading", {
 			hud = Material("vgui/ttt/hud_icon_deagle.png"),
-			type = "bad",
+			type = "bad"
+			--,
 
-			DrawInfo = function(self) return tostring(math.Round(math.max(0, self.displaytime - CurTime()))) end
+			--DrawInfo = function(self) return tostring(math.Round(math.max(0, self.displaytime - CurTime()))) end
 		})
 	end)
 
