@@ -77,6 +77,9 @@ SWEP.notBuyable = true
 local function SidekickDeagleRefilled(wep)
 	if not IsValid(wep) then return end
 
+	local text = LANG.GetTranslation("ttt2_siki_recharged")
+	MSTACK:AddMessage(text)
+
 	STATUS:RemoveStatus("ttt2_sidekick_deagle_reloading")
 	net.Start("tttSidekickDeagleRefilled")
 	net.WriteEntity(wep)
@@ -88,9 +91,11 @@ function SWEP:OnDrop()
 end
 
 function SWEP:PrimaryAttack()
-	if CLIENT then 
-		STATUS:AddTimedStatus("ttt2_sidekick_deagle_reloading", 120) 
-		timer.Create("ttt2_sidekick_deagle_refill_timer", 120, 1, function()
+	if CLIENT and self:CanPrimaryAttack() and GetConVar("ttt2_siki_deagle_refill"):GetBool() then
+		local initialCD = GetConVar("ttt2_siki_deagle_refill_cd"):GetInt()
+
+		STATUS:AddTimedStatus("ttt2_sidekick_deagle_reloading", initialCD) 
+		timer.Create("ttt2_sidekick_deagle_refill_timer", initialCD, 1, function()
 			SidekickDeagleRefilled(self)
 		end)
 	end
@@ -141,7 +146,7 @@ if SERVER then
 	end)
 
 	hook.Add("PlayerDeath", "SidekickDeagleRefillReduceCD", function(victim, inflictor, attacker)
-		if IsValid(attacker) and attacker:HasWeapon("weapon_ttt2_sidekickdeagle") then
+		if IsValid(attacker) and attacker:HasWeapon("weapon_ttt2_sidekickdeagle") and GetConVar("ttt2_siki_deagle_refill"):GetBool() then
 			net.Start("tttSidekickRefillCDReduced")
 			net.Send(attacker)	
 		end
@@ -160,6 +165,12 @@ if CLIENT then
 	hook.Add("TTT2FinishedLoading", "InitSikiMsgText", function()
 		LANG.AddToLanguage("English", "ttt2_siki_shot", "Successfully shot {name} as Sidekick!")
 		LANG.AddToLanguage("Deutsch", "ttt2_siki_shot", "Erfolgreich {name} als Sidekick geschossen!")
+
+		LANG.AddToLanguage("English", "ttt2_siki_ply_killed", "Your Sidekick Deagle Cooldown was reduced by {amount} seconds.")
+		LANG.AddToLanguage("Deutsch", "ttt2_siki_ply_killed", "Deine Sidekick Deagle Wartezeit wurde um {amount} Sekunden reduziert.")
+
+		LANG.AddToLanguage("English", "ttt2_siki_recharged", "Your Sidekick Deagle has been recharged.")
+		LANG.AddToLanguage("Deutsch", "ttt2_siki_recharged", "Deine Sidekick Deagle wurde wieder aufgefüllt.")
 	end)
 
 	hook.Add("Initialize", "ttt_sidekick_deagle_reloading", function() 
@@ -184,13 +195,17 @@ if CLIENT then
 		if not timer.Exists("ttt2_sidekick_deagle_refill_timer") then return end
 
 		local timeLeft = timer.TimeLeft("ttt2_sidekick_deagle_refill_timer")
-		local newTime = math.max(timeLeft - 60, 0.1)
+		local newTime = math.max(timeLeft - GetConVar("ttt2_siki_deagle_refill_cd_per_kill"):GetInt(), 0.1)
 		local wep = LocalPlayer():GetWeapon("weapon_ttt2_sidekickdeagle")
 		timer.Adjust("ttt2_sidekick_deagle_refill_timer", newTime, 1, function() SidekickDeagleRefilled(wep) end)
 
 		if STATUS.active["ttt2_sidekick_deagle_reloading"] then
 			STATUS.active["ttt2_sidekick_deagle_reloading"].displaytime = CurTime() + newTime
 		end
+
+		local text = LANG.GetParamTranslation("ttt2_siki_ply_killed", {amount = GetConVar("ttt2_siki_deagle_refill_cd_per_kill"):GetInt()})
+		MSTACK:AddMessage(text)
+		chat.PlaySound()
 	end)
 else
 	net.Receive("tttSidekickDeagleRefilled", function()
