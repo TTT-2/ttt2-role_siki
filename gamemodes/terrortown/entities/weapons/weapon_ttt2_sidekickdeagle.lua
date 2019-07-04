@@ -53,7 +53,7 @@ SWEP.Primary.DefaultClip = 1
 
 -- some other stuff
 SWEP.InLoadoutFor = nil
-SWEP.AllowDrop = true
+SWEP.AllowDrop = false
 SWEP.IsSilent = false
 SWEP.NoSights = false
 SWEP.UseHands = true
@@ -74,6 +74,10 @@ SWEP.IronSightsAng = Vector(0, 0, 0)
 
 SWEP.notBuyable = true
 
+local ttt2_sidekick_deagle_refill_conv = GetConVar("ttt2_siki_deagle_refill")
+local ttt2_sidekick_deagle_refill_cd_conv = GetConVar("ttt2_siki_deagle_refill_cd")
+local ttt2_siki_deagle_refill_cd_per_kill_conv = GetConVar("ttt2_siki_deagle_refill_cd_per_kill")
+
 local function SidekickDeagleRefilled(wep)
 	if not IsValid(wep) then return end
 
@@ -91,8 +95,8 @@ function SWEP:OnDrop()
 end
 
 function SWEP:PrimaryAttack()
-	if CLIENT and self:CanPrimaryAttack() and GetConVar("ttt2_siki_deagle_refill"):GetBool() then
-		local initialCD = GetConVar("ttt2_siki_deagle_refill_cd"):GetInt()
+	if CLIENT and self:CanPrimaryAttack() and ttt2_sidekick_deagle_refill_conv:GetBool() then
+		local initialCD = ttt2_sidekick_deagle_refill_cd_conv:GetInt()
 
 		STATUS:AddTimedStatus("ttt2_sidekick_deagle_reloading", initialCD, true) 
 		timer.Create("ttt2_sidekick_deagle_refill_timer", initialCD, 1, function()
@@ -104,7 +108,10 @@ function SWEP:PrimaryAttack()
 end
 
 function SWEP:OnRemove()
-	if CLIENT then STATUS:RemoveStatus("ttt2_sidekick_deagle_reloading") end
+	if CLIENT then 
+		STATUS:RemoveStatus("ttt2_sidekick_deagle_reloading") 
+		timer.Stop("ttt2_sidekick_deagle_refill_timer")
+	end
 end
 
 function ShootSidekick(target, dmginfo)
@@ -146,7 +153,7 @@ if SERVER then
 	end)
 
 	hook.Add("PlayerDeath", "SidekickDeagleRefillReduceCD", function(victim, inflictor, attacker)
-		if IsValid(attacker) and attacker:HasWeapon("weapon_ttt2_sidekickdeagle") and GetConVar("ttt2_siki_deagle_refill"):GetBool() then
+		if IsValid(attacker) and attacker:HasWeapon("weapon_ttt2_sidekickdeagle") and ttt2_sidekick_deagle_refill_conv:GetBool() then
 			net.Start("tttSidekickRefillCDReduced")
 			net.Send(attacker)	
 		end
@@ -193,10 +200,10 @@ if CLIENT then
 	end)
 
 	net.Receive("tttSidekickRefillCDReduced", function()
-		if not timer.Exists("ttt2_sidekick_deagle_refill_timer") then return end
-
+		if not timer.Exists("ttt2_sidekick_deagle_refill_timer") or not LocalPlayer():HasWeapon("weapon_ttt2_sidekickdeagle") then return end
+		
 		local timeLeft = timer.TimeLeft("ttt2_sidekick_deagle_refill_timer")
-		local newTime = math.max(timeLeft - GetConVar("ttt2_siki_deagle_refill_cd_per_kill"):GetInt(), 0.1)
+		local newTime = math.max(timeLeft - ttt2_siki_deagle_refill_cd_per_kill_conv:GetInt(), 0.1)
 		local wep = LocalPlayer():GetWeapon("weapon_ttt2_sidekickdeagle")
 		timer.Adjust("ttt2_sidekick_deagle_refill_timer", newTime, 1, function() SidekickDeagleRefilled(wep) end)
 
@@ -204,13 +211,15 @@ if CLIENT then
 			STATUS.active["ttt2_sidekick_deagle_reloading"].displaytime = CurTime() + newTime
 		end
 
-		local text = LANG.GetParamTranslation("ttt2_siki_ply_killed", {amount = GetConVar("ttt2_siki_deagle_refill_cd_per_kill"):GetInt()})
+		local text = LANG.GetParamTranslation("ttt2_siki_ply_killed", {amount = ttt2_siki_deagle_refill_cd_per_kill_conv:GetInt()})
 		MSTACK:AddMessage(text)
 		chat.PlaySound()
 	end)
 else
 	net.Receive("tttSidekickDeagleRefilled", function()
 		local wep = net.ReadEntity()
-		wep:SetClip1(1)
+		if IsValid(wep) then
+			wep:SetClip1(1)
+		end
 	end)
 end
