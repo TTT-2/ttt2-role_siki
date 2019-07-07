@@ -7,10 +7,11 @@ if SERVER then
 
 	CreateConVar("ttt2_siki_protection_time", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE})
 	CreateConVar("ttt2_siki_mode", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE})
-	CreateConVar("ttt2_siki_deagle_refill", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE})
-	CreateConVar("ttt2_siki_deagle_refill_cd", 120, {FCVAR_NOTIFY, FCVAR_ARCHIVE})
-	CreateConVar("ttt2_siki_deagle_refill_cd_per_kill", 60, {FCVAR_NOTIFY, FCVAR_ARCHIVE})
 end
+
+CreateConVar("ttt2_siki_deagle_refill", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE})
+CreateConVar("ttt2_siki_deagle_refill_cd", 120, {FCVAR_NOTIFY, FCVAR_ARCHIVE})
+CreateConVar("ttt2_siki_deagle_refill_cd_per_kill", 60, {FCVAR_NOTIFY, FCVAR_ARCHIVE})
 
 local plymeta = FindMetaTable("Player")
 if not plymeta then return end
@@ -43,8 +44,8 @@ hook.Add("TTTUlxDynamicRCVars", "TTTUlxDynamicSikiCVars", function(tbl)
 	table.insert(tbl[ROLE_SIDEKICK], {cvar = "ttt2_siki_protection_time", slider = true, min = 0, max = 60, desc = "Protection Time for new Sidekick (Def. 1)"})
 	table.insert(tbl[ROLE_SIDEKICK], {cvar = "ttt2_siki_mode", checkbox = true, desc = "Normal mode for the Sidekick (Def. 1). 1 = Sidekick -> Jackal. 2 = Sidekick receive targets"})
 	table.insert(tbl[ROLE_SIDEKICK], {cvar = "ttt2_siki_deagle_refill", checkbox = true, desc = "The Sidekick Deagle can be refilled when you missed a shot. (Def. 1)"})
-	table.insert(tbl[ROLE_SIDEKICK], {cvar = "ttt2_siki_deagle_refill_cd", slider = true, min = 1, max = 300, desc = "The duration (in seconds) after which the Sidekick Deagle gets refilled (Def. 120)"})
-	table.insert(tbl[ROLE_SIDEKICK], {cvar = "ttt2_siki_deagle_refill_cd_per_kill", slider = true, min = 1, max = 300, desc = "The amount of seconds your Refill Cooldown gets reduced per kill (Def. 60)"})
+	table.insert(tbl[ROLE_SIDEKICK], {cvar = "ttt2_siki_deagle_refill_cd", slider = true, min = 1, max = 300, desc = "Seconds to Refill (Def. 120)"})
+	table.insert(tbl[ROLE_SIDEKICK], {cvar = "ttt2_siki_deagle_refill_cd_per_kill", slider = true, min = 1, max = 300, desc = "CD Reduction per Kill (Def. 60)"})
 end)
 
 -- if sync of roles has finished
