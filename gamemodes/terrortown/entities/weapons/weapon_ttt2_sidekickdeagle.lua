@@ -202,7 +202,7 @@ if CLIENT then
 	net.Receive("tttSidekickRefillCDReduced", function()
 		if not timer.Exists("ttt2_sidekick_deagle_refill_timer") or not LocalPlayer():HasWeapon("weapon_ttt2_sidekickdeagle") then return end
 		
-		local timeLeft = timer.TimeLeft("ttt2_sidekick_deagle_refill_timer")
+		local timeLeft = timer.TimeLeft("ttt2_sidekick_deagle_refill_timer") or 0.1
 		local newTime = math.max(timeLeft - ttt2_siki_deagle_refill_cd_per_kill_conv:GetInt(), 0.1)
 		local wep = LocalPlayer():GetWeapon("weapon_ttt2_sidekickdeagle")
 		timer.Adjust("ttt2_sidekick_deagle_refill_timer", newTime, 1, function() SidekickDeagleRefilled(wep) end)
