@@ -153,7 +153,7 @@ if SERVER then
 	end)
 
 	hook.Add("PlayerDeath", "SidekickDeagleRefillReduceCD", function(victim, inflictor, attacker)
-		if IsValid(attacker) and attacker:HasWeapon("weapon_ttt2_sidekickdeagle") and ttt2_sidekick_deagle_refill_conv:GetBool() then
+		if IsValid(attacker) and attacker:IsPlayer() and attacker:HasWeapon("weapon_ttt2_sidekickdeagle") and ttt2_sidekick_deagle_refill_conv:GetBool() then
 			net.Start("tttSidekickRefillCDReduced")
 			net.Send(attacker)	
 		end
