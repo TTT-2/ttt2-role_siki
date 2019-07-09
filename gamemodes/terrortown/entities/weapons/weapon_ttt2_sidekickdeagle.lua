@@ -74,9 +74,9 @@ SWEP.IronSightsAng = Vector(0, 0, 0)
 
 SWEP.notBuyable = true
 
-local ttt2_sidekick_deagle_refill_conv = GetConVar("ttt2_siki_deagle_refill")
-local ttt2_sidekick_deagle_refill_cd_conv = GetConVar("ttt2_siki_deagle_refill_cd")
-local ttt2_siki_deagle_refill_cd_per_kill_conv = GetConVar("ttt2_siki_deagle_refill_cd_per_kill")
+local ttt2_sidekick_deagle_refill_conv = CreateConVar("ttt2_siki_deagle_refill", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE})
+local ttt2_sidekick_deagle_refill_cd_conv = CreateConVar("ttt2_siki_deagle_refill_cd", 120, {FCVAR_NOTIFY, FCVAR_ARCHIVE})
+local ttt2_siki_deagle_refill_cd_per_kill_conv = CreateConVar("ttt2_siki_deagle_refill_cd_per_kill", 60, {FCVAR_NOTIFY, FCVAR_ARCHIVE})
 
 local function SidekickDeagleRefilled(wep)
 	if not IsValid(wep) then return end
@@ -202,7 +202,7 @@ if CLIENT then
 	net.Receive("tttSidekickRefillCDReduced", function()
 		if not timer.Exists("ttt2_sidekick_deagle_refill_timer") or not LocalPlayer():HasWeapon("weapon_ttt2_sidekickdeagle") then return end
 		
-		local timeLeft = timer.TimeLeft("ttt2_sidekick_deagle_refill_timer") or 0.1
+		local timeLeft = timer.TimeLeft("ttt2_sidekick_deagle_refill_timer") or 0
 		local newTime = math.max(timeLeft - ttt2_siki_deagle_refill_cd_per_kill_conv:GetInt(), 0.1)
 		local wep = LocalPlayer():GetWeapon("weapon_ttt2_sidekickdeagle")
 		timer.Adjust("ttt2_sidekick_deagle_refill_timer", newTime, 1, function() SidekickDeagleRefilled(wep) end)
