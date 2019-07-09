@@ -117,13 +117,10 @@ local function SidekickDeagleCallback(attacker, tr, dmg)
 	if IsValid(deagle) then
 		deagle:Remove()
 	end
-
 	AddSidekick(target, attacker)
-
+	
 	net.Start("tttSidekickMSG")
-
 	net.WriteEntity(target)
-
 	net.Send(attacker)
 
 	return true
