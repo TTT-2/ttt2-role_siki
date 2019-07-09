@@ -18,6 +18,7 @@ if SERVER then
 	util.AddNetworkString("tttSidekickRefillCDReduced")
 	util.AddNetworkString("tttSidekickDeagleRefilled")
 	util.AddNetworkString("tttSidekickDeagleMiss")
+	util.AddNetworkString("tttSidekickSameTeam")
 else
 	hook.Add("Initialize", "TTTInitSikiDeagleLang", function()
 		LANG.AddToLanguage("English", "ttt2_weapon_sidekickdeagle_desc", "Shoot a player to make him your sidekick.")
@@ -100,9 +101,10 @@ local function SidekickDeagleCallback(attacker, tr, dmg)
 	if not GetRoundState() == ROUND_ACTIVE or not IsValid(attacker) or not attacker:IsTerror() then return end
 
 	--no/bad hit: (send message), start timer and return
-	if not IsValid(target) or not target:IsTerror() or target:GetSubRole() == ROLE_JACKAL or target:GetSubRole() == ROLE_SIDEKICK then
-		if IsValid(target) and (target:GetSubRole() == ROLE_JACKAL or target:GetSubRole() == ROLE_SIDEKICK) then
-			attacker:PrintMessage(HUD_PRINTTALK, "You can't shoot a Jackal/Sidekick as Sidekick!")
+	if not IsValid(target) or not target:IsTerror() or target:IsInTeam(attacker) then
+		if IsValid(target) and target:IsInTeam(attacker) then
+			net.Start("tttSidekickSameTeam")
+			net.Send(attacker)	
 		end	
 		if ttt2_sidekick_deagle_refill_conv:GetBool() then
 			net.Start("tttSidekickDeagleMiss")
@@ -200,6 +202,9 @@ if CLIENT then
 		LANG.AddToLanguage("English", "ttt2_siki_shot", "Successfully shot {name} as Sidekick!")
 		LANG.AddToLanguage("Deutsch", "ttt2_siki_shot", "Erfolgreich {name} als Sidekick geschossen!")
 
+		LANG.AddToLanguage("English", "ttt2_siki_sameteam", "You can't shoot someone from your team as Sidekick!")
+		LANG.AddToLanguage("Deutsch", "ttt2_siki_sameteam", "Du kannst niemanden aus deinem Team zum Sidekick schießen!")
+
 		LANG.AddToLanguage("English", "ttt2_siki_ply_killed", "Your Sidekick Deagle Cooldown was reduced by {amount} seconds.")
 		LANG.AddToLanguage("Deutsch", "ttt2_siki_ply_killed", "Deine Sidekick Deagle Wartezeit wurde um {amount} Sekunden reduziert.")
 
@@ -251,6 +256,10 @@ if CLIENT then
 		timer.Create("ttt2_sidekick_deagle_refill_timer", initialCD, 1, function()
 			SidekickDeagleRefilled(wep)
 		end)	
+	end)
+
+	net.Receive("tttSidekickSameTeam", function()
+		MSTACK:AddMessage(LANG.GetTranslation("ttt2_siki_sameteam"))
 	end)
 else
 	net.Receive("tttSidekickDeagleRefilled", function()
