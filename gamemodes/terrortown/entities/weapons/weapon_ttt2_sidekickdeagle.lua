@@ -55,7 +55,7 @@ SWEP.Primary.DefaultClip = 1
 
 -- some other stuff
 SWEP.InLoadoutFor = nil
-SWEP.AllowDrop = true
+SWEP.AllowDrop = false
 SWEP.IsSilent = false
 SWEP.NoSights = false
 SWEP.UseHands = true
