@@ -9,10 +9,6 @@ if SERVER then
 	CreateConVar("ttt2_siki_mode", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE})
 end
 
-CreateConVar("ttt2_siki_deagle_refill", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE})
-CreateConVar("ttt2_siki_deagle_refill_cd", 120, {FCVAR_NOTIFY, FCVAR_ARCHIVE})
-CreateConVar("ttt2_siki_deagle_refill_cd_per_kill", 60, {FCVAR_NOTIFY, FCVAR_ARCHIVE})
-
 local plymeta = FindMetaTable("Player")
 if not plymeta then return end
 
