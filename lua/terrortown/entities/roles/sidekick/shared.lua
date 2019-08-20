@@ -368,7 +368,7 @@ if SERVER then
 				for _, ply in ipairs(player.GetAll()) do
 					net.Start("TTT2SikiSyncHeroes")
 					net.WriteEntity(ply)
-					net.WriteUInt(ply:GetHero() or 0, HERO_BITS)
+					net.WriteUInt(ply:GetHero() or 0, CLASS_BITS)
 					net.Send(hitman)
 				end
 			end
@@ -377,7 +377,7 @@ if SERVER then
 else
 	net.Receive("TTT2SikiSyncHeroes", function(len)
 		local target = net.ReadEntity()
-		local hr = net.ReadUInt(HERO_BITS)
+		local hr = net.ReadUInt(CLASS_BITS)
 
 		if hr == 0 then
 			hr = nil
