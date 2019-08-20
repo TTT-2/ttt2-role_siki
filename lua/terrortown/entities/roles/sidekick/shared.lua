@@ -355,14 +355,14 @@ end)
 
 -- SIDEKICK HITMAN FUNCTION
 if SERVER then
-	hook.Add("TTT2CheckCreditAward", "TTTHHitmanMod", function(victim, attacker)
+	hook.Add("TTT2CheckCreditAward", "TTTCHitmanMod", function(victim, attacker)
 		if IsValid(attacker) and attacker:IsPlayer() and attacker:IsActive() and attacker:GetSubRole() == ROLE_SIDEKICK and not GetConVar("ttt2_siki_mode"):GetBool() then
 			return false -- prevent awards
 		end
 	end)
 
 	-- CLASSES syncing
-	hook.Add("TTTHPostReceiveHeroes", "TTTHHitmanMod", function()
+	hook.Add("TTTCPostReceiveHeroes", "TTTCHitmanMod", function()
 		for _, siki in ipairs(player.GetAll()) do
 			if siki:IsActive() and siki:GetSubRole() == ROLE_SIDEKICK then
 				for _, ply in ipairs(player.GetAll()) do
