@@ -368,7 +368,7 @@ if SERVER then
 				for _, ply in ipairs(player.GetAll()) do
 					net.Start("TTT2SikiSyncHeroes")
 					net.WriteEntity(ply)
-					net.WriteUInt(ply:GetHero() or 0, CLASS_BITS)
+					net.WriteUInt(ply:GetCustomClass() or 0, CLASS_BITS)
 					net.Send(hitman)
 				end
 			end
@@ -383,7 +383,7 @@ else
 			hr = nil
 		end
 
-		target:SetHero(hr)
+		target:SetClass(hr)
 	end)
 end
 
