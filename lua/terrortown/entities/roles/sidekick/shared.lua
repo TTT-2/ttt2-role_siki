@@ -66,7 +66,7 @@ if CLIENT then
 	end)
 else
 	hook.Add("TTT2RolesLoaded", "AddCrystalKnifeToDefaultSikiLO", function()
-		if HEROES then
+		if TTTH then
 			local wep = weapons.GetStored("weapon_ttt_crystalknife")
 			if wep then
 				wep.InLoadoutFor = wep.InLoadoutFor or {}
@@ -361,7 +361,7 @@ if SERVER then
 		end
 	end)
 
-	-- HEROES syncing
+	-- CLASSES syncing
 	hook.Add("TTTHPostReceiveHeroes", "TTTHHitmanMod", function()
 		for _, siki in ipairs(player.GetAll()) do
 			if siki:IsActive() and siki:GetSubRole() == ROLE_SIDEKICK then
