@@ -1,7 +1,7 @@
 if SERVER then
 	AddCSLuaFile()
 
-	util.AddNetworkString("TTT2SikiSyncHeroes")
+	util.AddNetworkString("TTT2SikiSyncClasses")
 
 	resource.AddFile("materials/vgui/ttt/dynamic/roles/icon_siki.vmt")
 
@@ -362,11 +362,11 @@ if SERVER then
 	end)
 
 	-- CLASSES syncing
-	hook.Add("TTTCPostReceiveHeroes", "TTTCHitmanMod", function()
+	hook.Add("TTTCPostReceiveClasses", "TTTCHitmanMod", function()
 		for _, siki in ipairs(player.GetAll()) do
 			if siki:IsActive() and siki:GetSubRole() == ROLE_SIDEKICK then
 				for _, ply in ipairs(player.GetAll()) do
-					net.Start("TTT2SikiSyncHeroes")
+					net.Start("TTT2SikiSyncClasses")
 					net.WriteEntity(ply)
 					net.WriteUInt(ply:GetCustomClass() or 0, CLASS_BITS)
 					net.Send(hitman)
@@ -375,7 +375,7 @@ if SERVER then
 		end
 	end)
 else
-	net.Receive("TTT2SikiSyncHeroes", function(len)
+	net.Receive("TTT2SikiSyncClasses", function(len)
 		local target = net.ReadEntity()
 		local hr = net.ReadUInt(CLASS_BITS)
 
