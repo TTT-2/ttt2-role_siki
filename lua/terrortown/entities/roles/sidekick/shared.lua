@@ -355,22 +355,20 @@ end)
 
 -- SIDEKICK HITMAN FUNCTION
 if SERVER then
-	hook.Add("TTT2CheckCreditAward", "TTTCHitmanMod", function(victim, attacker)
+	hook.Add("TTT2CheckCreditAward", "TTTCSidekickMod", function(victim, attacker)
 		if IsValid(attacker) and attacker:IsPlayer() and attacker:IsActive() and attacker:GetSubRole() == ROLE_SIDEKICK and not GetConVar("ttt2_siki_mode"):GetBool() then
 			return false -- prevent awards
 		end
 	end)
 
 	-- CLASSES syncing
-	hook.Add("TTTCPostReceiveClasses", "TTTCHitmanMod", function()
-		for _, siki in ipairs(player.GetAll()) do
-			if siki:IsActive() and siki:GetSubRole() == ROLE_SIDEKICK then
-				for _, ply in ipairs(player.GetAll()) do
-					net.Start("TTT2SikiSyncClasses")
-					net.WriteEntity(ply)
-					net.WriteUInt(ply:GetCustomClass() or 0, CLASS_BITS)
-					net.Send(hitman)
-				end
+	hook.Add("TTT2UpdateSubrole", "TTTCSidekickMod", function(siki, oldRole, role)
+		if siki:IsActive() and role == ROLE_SIDEKICK and not GetConVar("ttt2_siki_mode"):GetBool() then
+			for _, ply in ipairs(player.GetAll()) do
+				net.Start("TTT2SikiSyncClasses")
+				net.WriteEntity(ply)
+				net.WriteUInt(ply:GetCustomClass() or 0, CLASS_BITS)
+				net.Send(siki)
 			end
 		end
 	end)
