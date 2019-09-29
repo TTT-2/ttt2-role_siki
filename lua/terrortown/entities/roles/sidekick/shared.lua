@@ -47,22 +47,18 @@ end)
 -- if sync of roles has finished
 if CLIENT then
 	hook.Add("TTT2FinishedLoading", "SikiInitT", function()
-		-- setup here is not necessary but if you want to access the role data, you need to start here
-		-- setup basic translation !
+		-- Role specific language elements
 		LANG.AddToLanguage("English", SIDEKICK.name, "Sidekick")
 		LANG.AddToLanguage("English", "target_" .. SIDEKICK.name, "Sidekick")
 		LANG.AddToLanguage("English", "ttt2_desc_" .. SIDEKICK.name, [[You need to win with your mate!]])
 		LANG.AddToLanguage("English", "body_found_" .. SIDEKICK.abbr, "This was a Sidekick...")
 		LANG.AddToLanguage("English", "search_role_" .. SIDEKICK.abbr, "This person was a Sidekick!")
 
-		---------------------------------
-
-		-- maybe this language as well...
-		LANG.AddToLanguage("Deutsch", SIDEKICK.name, "Sidekick")
-		LANG.AddToLanguage("Deutsch", "target_" .. SIDEKICK.name, "Sidekick")
+		LANG.AddToLanguage("Deutsch", SIDEKICK.name, "Kumpane")
+		LANG.AddToLanguage("Deutsch", "target_" .. SIDEKICK.name, "Kumpane")
 		LANG.AddToLanguage("Deutsch", "ttt2_desc_" .. SIDEKICK.name, [[Du musst mit deinem Mate gewinnen!]])
-		LANG.AddToLanguage("Deutsch", "body_found_" .. SIDEKICK.abbr, "Er war ein Sidekick...")
-		LANG.AddToLanguage("Deutsch", "search_role_" .. SIDEKICK.abbr, "Diese Person war ein Sidekick!")
+		LANG.AddToLanguage("Deutsch", "body_found_" .. SIDEKICK.abbr, "Er war ein Kumpane!")
+		LANG.AddToLanguage("Deutsch", "search_role_" .. SIDEKICK.abbr, "Diese Person war ein Kumpane!")
 	end)
 else
 	hook.Add("TTT2RolesLoaded", "AddCrystalKnifeToDefaultSikiLO", function()

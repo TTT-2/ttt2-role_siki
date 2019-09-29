@@ -14,7 +14,8 @@ if SERVER then
 
 	resource.AddFile("materials/vgui/ttt/icon_sidekickdeagle.vmt")
 
-	util.AddNetworkString("tttSidekickMSG")
+	util.AddNetworkString("tttSidekickMSG_attacker")
+	util.AddNetworkString("tttSidekickMSG_target")
 	util.AddNetworkString("tttSidekickRefillCDReduced")
 	util.AddNetworkString("tttSidekickDeagleRefilled")
 	util.AddNetworkString("tttSidekickDeagleMiss")
@@ -119,9 +120,13 @@ local function SidekickDeagleCallback(attacker, tr, dmg)
 	end
 	AddSidekick(target, attacker)
 	
-	net.Start("tttSidekickMSG")
+	net.Start("tttSidekickMSG_attacker")
 	net.WriteEntity(target)
 	net.Send(attacker)
+
+	net.Start("tttSidekickMSG_target")
+	net.WriteEntity(attacker)
+	net.Send(target)
 
 	return true
 end
@@ -162,18 +167,18 @@ function ShootSidekick(target, dmginfo)
 		or not attacker:IsTerror() or not IsValid(target) or not target:IsTerror() then return end
 
 	if target:GetSubRole() == ROLE_JACKAL or target:GetSubRole() == ROLE_SIDEKICK then
-		attacker:PrintMessage(HUD_PRINTTALK, "You can't shoot a Jackal/Sidekick as Sidekick!")
 		return
 	end
 
 	AddSidekick(target, attacker)
 
-	net.Start("tttSidekickMSG")
-
+	net.Start("tttSidekickMSG_attacker")
 	net.WriteEntity(target)
-
 	net.Send(attacker)
 
+	net.Start("tttSidekickMSG_target")
+	net.WriteEntity(attacker)
+	net.Send(target)
 end
 
 
@@ -196,32 +201,44 @@ end)
 
 if CLIENT then
 	hook.Add("TTT2FinishedLoading", "InitSikiMsgText", function()
-		LANG.AddToLanguage("English", "ttt2_siki_shot", "Successfully shot {name} as Sidekick!")
-		LANG.AddToLanguage("Deutsch", "ttt2_siki_shot", "Erfolgreich {name} als Sidekick geschossen!")
+		LANG.AddToLanguage("English", "ttt2_siki_shot", "Successfully shot {name} as sidekick!")
+		LANG.AddToLanguage("Deutsch", "ttt2_siki_shot", "Erfolgreich {name} zum Kumpanen geschossen!")
 
-		LANG.AddToLanguage("English", "ttt2_siki_sameteam", "You can't shoot someone from your team as Sidekick!")
-		LANG.AddToLanguage("Deutsch", "ttt2_siki_sameteam", "Du kannst niemanden aus deinem Team zum Sidekick schießen!")
+		LANG.AddToLanguage("English", "ttt2_siki_were_shot", "You were shot as sidekick by {name}!")
+		LANG.AddToLanguage("Deutsch", "ttt2_siki_were_shot", "Du wurdest von {name} zum Kumpanen geschossen!")
 
-		LANG.AddToLanguage("English", "ttt2_siki_ply_killed", "Your Sidekick Deagle Cooldown was reduced by {amount} seconds.")
+		LANG.AddToLanguage("English", "ttt2_siki_sameteam", "You can't shoot someone from your team as sidekick!")
+		LANG.AddToLanguage("Deutsch", "ttt2_siki_sameteam", "Du kannst niemanden aus deinem Team zum Kumpanen schießen!")
+
+		LANG.AddToLanguage("English", "ttt2_siki_ply_killed", "Your sidekick deagle cooldown was reduced by {amount} seconds.")
 		LANG.AddToLanguage("Deutsch", "ttt2_siki_ply_killed", "Deine Sidekick Deagle Wartezeit wurde um {amount} Sekunden reduziert.")
 
-		LANG.AddToLanguage("English", "ttt2_siki_recharged", "Your Sidekick Deagle has been recharged.")
+		LANG.AddToLanguage("English", "ttt2_siki_recharged", "Your sidekick deagle has been recharged.")
 		LANG.AddToLanguage("Deutsch", "ttt2_siki_recharged", "Deine Sidekick Deagle wurde wieder aufgefüllt.")
 	end)
 
-	hook.Add("Initialize", "ttt_sidekick_deagle_reloading", function() 
+	hook.Add("Initialize", "ttt_sidekick_init_status", function() 
 		STATUS:RegisterStatus("ttt2_sidekick_deagle_reloading", {
 			hud = Material("vgui/ttt/hud_icon_deagle.png"),
 			type = "bad"
 		})
 	end)
 
-	net.Receive("tttSidekickMSG", function(len)
+	net.Receive("tttSidekickMSG_attacker", function(len)
 		local target = net.ReadEntity()
 
 		if not target or not IsValid(target) then return end
 
 		local text = LANG.GetParamTranslation("ttt2_siki_shot", {name = target:GetName()})
+		MSTACK:AddMessage(text)
+	end)
+
+	net.Receive("tttSidekickMSG_target", function(len)
+		local attacker = net.ReadEntity()
+
+		if not attacker or not IsValid(attacker) then return end
+
+		local text = LANG.GetParamTranslation("ttt2_siki_were_shot", {name = attacker:GetName()})
 		MSTACK:AddMessage(text)
 	end)
 
