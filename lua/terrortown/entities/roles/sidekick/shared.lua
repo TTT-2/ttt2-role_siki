@@ -1,7 +1,7 @@
 if SERVER then
 	AddCSLuaFile()
 
-	util.AddNetworkString("TTT2SikiSyncHeroes")
+	util.AddNetworkString("TTT2SikiSyncClasses")
 
 	resource.AddFile("materials/vgui/ttt/dynamic/roles/icon_siki.vmt")
 
@@ -62,7 +62,7 @@ if CLIENT then
 	end)
 else
 	hook.Add("TTT2RolesLoaded", "AddCrystalKnifeToDefaultSikiLO", function()
-		if HEROES then
+		if TTTH then
 			local wep = weapons.GetStored("weapon_ttt_crystalknife")
 			if wep then
 				wep.InLoadoutFor = wep.InLoadoutFor or {}
@@ -265,17 +265,17 @@ if SERVER then
 
 		local mate = ply:GetSidekickMate() -- Is Sidekick?
 
-		if IsValid(mate) and not ply.lastMateSubRole then
-			ply.lastMateSubRole = ply.mateSubRole or mate:GetSubRole()
-		end
+		if not IsValid(mate) or ply.lastMateSubRole then return end
+			
+		ply.lastMateSubRole = ply.mateSubRole or mate:GetSubRole()
 	end)
 	
 	hook.Add("PlayerSpawn", "PlayerSpawnsAsSidekick", function(ply)
-		if ply.spawn_as_sidekick then
-			AddSidekick(ply, ply.spawn_as_sidekick)
-			
-			ply.spawn_as_sidekick = nil
-		end
+		if not ply.spawn_as_sidekick then return end
+
+		AddSidekick(ply, ply.spawn_as_sidekick)
+
+		ply.spawn_as_sidekick = nil
 	end)
 
 	hook.Add("TTT2OverrideDisabledSync", "SikiAllowTeammateSync", function(ply, p)
@@ -285,13 +285,13 @@ if SERVER then
 	end)
 
 	hook.Add("TTTBodyFound", "SikiSendLastColor", function(ply, deadply, rag)
-		if IsValid(deadply) and deadply:GetSubRole() == ROLE_SIDEKICK then
-			net.Start("TTT2SyncSikiColor")
-			net.WriteString(deadply:EntIndex())
-			net.WriteUInt(deadply.mateSubRole, ROLE_BITS)
-			net.WriteUInt(deadply.lastMateSubRole, ROLE_BITS)
-			net.Broadcast()
-		end
+		if not IsValid(deadply) or deadply:GetSubRole() ~= ROLE_SIDEKICK then return end
+
+		net.Start("TTT2SyncSikiColor")
+		net.WriteString(deadply:EntIndex())
+		net.WriteUInt(deadply.mateSubRole, ROLE_BITS)
+		net.WriteUInt(deadply.lastMateSubRole, ROLE_BITS)
+		net.Broadcast()
 	end)
 
 	-- fix that innos can see their sikis
@@ -299,11 +299,11 @@ if SERVER then
 		local rd = ply:GetSubRoleData()
 		local sikis = ply:GetSidekicks()
 
-		if rd.unknownTeam and sikis then
-			for _, siki in ipairs(sikis) do
-				if IsValid(siki) and siki:IsInTeam(ply) then
-					tmp[siki] = {ROLE_SIDEKICK, ply:GetTeam()}
-				end
+		if not rd.unknownTeam or not sikis then return end
+
+		for _, siki in ipairs(sikis) do
+			if IsValid(siki) and siki:IsInTeam(ply) then
+				tmp[siki] = {ROLE_SIDEKICK, ply:GetTeam()}
 			end
 		end
 	end)
@@ -315,11 +315,11 @@ else -- CLIENT
 	net.Receive("TTT2SyncSikiColor", function()
 		local ply = Entity(net.ReadString())
 
-		if IsValid(ply) and ply:IsPlayer() then
-			ply.mateSubRole = net.ReadUInt(ROLE_BITS)
-			ply.lastMateSubRole = net.ReadUInt(ROLE_BITS)
-			ply:SetRoleColor(COLOR_BLACK)
-		end
+		if not IsValid(ply) or not ply:IsPlayer() then return end
+
+		ply.mateSubRole = net.ReadUInt(ROLE_BITS)
+		ply.lastMateSubRole = net.ReadUInt(ROLE_BITS)
+		ply:SetRoleColor(COLOR_BLACK)
 	end)
 
 	-- Modify colors
@@ -351,35 +351,34 @@ end)
 
 -- SIDEKICK HITMAN FUNCTION
 if SERVER then
-	hook.Add("TTT2CheckCreditAward", "TTTHHitmanMod", function(victim, attacker)
+	hook.Add("TTT2CheckCreditAward", "TTTCSidekickMod", function(victim, attacker)
 		if IsValid(attacker) and attacker:IsPlayer() and attacker:IsActive() and attacker:GetSubRole() == ROLE_SIDEKICK and not GetConVar("ttt2_siki_mode"):GetBool() then
 			return false -- prevent awards
 		end
 	end)
 
-	-- HEROES syncing
-	hook.Add("TTTHPostReceiveHeroes", "TTTHHitmanMod", function()
-		for _, siki in ipairs(player.GetAll()) do
-			if siki:IsActive() and siki:GetSubRole() == ROLE_SIDEKICK then
-				for _, ply in ipairs(player.GetAll()) do
-					net.Start("TTT2SikiSyncHeroes")
-					net.WriteEntity(ply)
-					net.WriteUInt(ply:GetHero() or 0, HERO_BITS)
-					net.Send(hitman)
-				end
-			end
+	-- CLASSES syncing
+	hook.Add("TTT2UpdateSubrole", "TTTCSidekickMod", function(siki, oldRole, role)
+		if not TTTC or not siki:IsActive() or role ~= ROLE_SIDEKICK or GetConVar("ttt2_siki_mode"):GetBool() then return end
+			
+		for _, ply in ipairs(player.GetAll()) do
+			net.Start("TTT2SikiSyncClasses")
+			net.WriteEntity(ply)
+			net.WriteUInt(ply:GetCustomClass() or 0, CLASS_BITS)
+			net.Send(siki)
 		end
 	end)
 else
-	net.Receive("TTT2SikiSyncHeroes", function(len)
+	net.Receive("TTT2SikiSyncClasses", function(len)
 		local target = net.ReadEntity()
-		local hr = net.ReadUInt(HERO_BITS)
+		if not IsValid(target) then return end
 
+		local hr = net.ReadUInt(CLASS_BITS)
 		if hr == 0 then
 			hr = nil
 		end
 
-		target:SetHero(hr)
+		target:SetClass(hr)
 	end)
 end
 
