@@ -269,17 +269,17 @@ if SERVER then
 
 		local mate = ply:GetSidekickMate() -- Is Sidekick?
 
-		if IsValid(mate) and not ply.lastMateSubRole then
-			ply.lastMateSubRole = ply.mateSubRole or mate:GetSubRole()
-		end
+		if not IsValid(mate) or ply.lastMateSubRole then return end
+			
+		ply.lastMateSubRole = ply.mateSubRole or mate:GetSubRole()
 	end)
 	
 	hook.Add("PlayerSpawn", "PlayerSpawnsAsSidekick", function(ply)
-		if ply.spawn_as_sidekick then
-			AddSidekick(ply, ply.spawn_as_sidekick)
-			
-			ply.spawn_as_sidekick = nil
-		end
+		if not ply.spawn_as_sidekick then return end
+
+		AddSidekick(ply, ply.spawn_as_sidekick)
+
+		ply.spawn_as_sidekick = nil
 	end)
 
 	hook.Add("TTT2OverrideDisabledSync", "SikiAllowTeammateSync", function(ply, p)
@@ -289,13 +289,13 @@ if SERVER then
 	end)
 
 	hook.Add("TTTBodyFound", "SikiSendLastColor", function(ply, deadply, rag)
-		if IsValid(deadply) and deadply:GetSubRole() == ROLE_SIDEKICK then
-			net.Start("TTT2SyncSikiColor")
-			net.WriteString(deadply:EntIndex())
-			net.WriteUInt(deadply.mateSubRole, ROLE_BITS)
-			net.WriteUInt(deadply.lastMateSubRole, ROLE_BITS)
-			net.Broadcast()
-		end
+		if not IsValid(deadply) or deadply:GetSubRole() ~= ROLE_SIDEKICK then return end
+
+		net.Start("TTT2SyncSikiColor")
+		net.WriteString(deadply:EntIndex())
+		net.WriteUInt(deadply.mateSubRole, ROLE_BITS)
+		net.WriteUInt(deadply.lastMateSubRole, ROLE_BITS)
+		net.Broadcast()
 	end)
 
 	-- fix that innos can see their sikis
@@ -303,11 +303,11 @@ if SERVER then
 		local rd = ply:GetSubRoleData()
 		local sikis = ply:GetSidekicks()
 
-		if rd.unknownTeam and sikis then
-			for _, siki in ipairs(sikis) do
-				if IsValid(siki) and siki:IsInTeam(ply) then
-					tmp[siki] = {ROLE_SIDEKICK, ply:GetTeam()}
-				end
+		if not rd.unknownTeam or not sikis then return end
+
+		for _, siki in ipairs(sikis) do
+			if IsValid(siki) and siki:IsInTeam(ply) then
+				tmp[siki] = {ROLE_SIDEKICK, ply:GetTeam()}
 			end
 		end
 	end)
@@ -319,11 +319,11 @@ else -- CLIENT
 	net.Receive("TTT2SyncSikiColor", function()
 		local ply = Entity(net.ReadString())
 
-		if IsValid(ply) and ply:IsPlayer() then
-			ply.mateSubRole = net.ReadUInt(ROLE_BITS)
-			ply.lastMateSubRole = net.ReadUInt(ROLE_BITS)
-			ply:SetRoleColor(COLOR_BLACK)
-		end
+		if not IsValid(ply) or not ply:IsPlayer() then return end
+
+		ply.mateSubRole = net.ReadUInt(ROLE_BITS)
+		ply.lastMateSubRole = net.ReadUInt(ROLE_BITS)
+		ply:SetRoleColor(COLOR_BLACK)
 	end)
 
 	-- Modify colors
@@ -363,20 +363,21 @@ if SERVER then
 
 	-- CLASSES syncing
 	hook.Add("TTT2UpdateSubrole", "TTTCSidekickMod", function(siki, oldRole, role)
-		if siki:IsActive() and role == ROLE_SIDEKICK and not GetConVar("ttt2_siki_mode"):GetBool() then
-			for _, ply in ipairs(player.GetAll()) do
-				net.Start("TTT2SikiSyncClasses")
-				net.WriteEntity(ply)
-				net.WriteUInt(ply:GetCustomClass() or 0, CLASS_BITS)
-				net.Send(siki)
-			end
+		if not TTTC or not siki:IsActive() or role ~= ROLE_SIDEKICK or GetConVar("ttt2_siki_mode"):GetBool() then return end
+			
+		for _, ply in ipairs(player.GetAll()) do
+			net.Start("TTT2SikiSyncClasses")
+			net.WriteEntity(ply)
+			net.WriteUInt(ply:GetCustomClass() or 0, CLASS_BITS)
+			net.Send(siki)
 		end
 	end)
 else
 	net.Receive("TTT2SikiSyncClasses", function(len)
 		local target = net.ReadEntity()
-		local hr = net.ReadUInt(CLASS_BITS)
+		if not IsValid(target) then return end
 
+		local hr = net.ReadUInt(CLASS_BITS)
 		if hr == 0 then
 			hr = nil
 		end
