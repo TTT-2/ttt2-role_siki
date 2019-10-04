@@ -99,18 +99,20 @@ local function SidekickDeagleCallback(attacker, tr, dmg)
 	local target = tr.Entity
 
 	--invalid shot return
-	if not GetRoundState() == ROUND_ACTIVE or not IsValid(attacker) or not attacker:IsTerror() then return end
+	if not GetRoundState() == ROUND_ACTIVE or not IsValid(attacker) or not attacker:IsPlayer() or not attacker:IsTerror() then return end
 
 	--no/bad hit: (send message), start timer and return
-	if not IsValid(target) or not target:IsTerror() or target:IsInTeam(attacker) then
+	if not IsValid(target) or not target:IsPlayer() or not target:IsTerror() or target:IsInTeam(attacker) then
 		if IsValid(target) and target:IsInTeam(attacker) then
 			net.Start("tttSidekickSameTeam")
 			net.Send(attacker)	
 		end	
+		
 		if ttt2_sidekick_deagle_refill_conv:GetBool() then
 			net.Start("tttSidekickDeagleMiss")
 			net.Send(attacker)
 		end
+		
 		return
 	end
 
@@ -118,6 +120,7 @@ local function SidekickDeagleCallback(attacker, tr, dmg)
 	if IsValid(deagle) then
 		deagle:Remove()
 	end
+	
 	AddSidekick(target, attacker)
 	
 	net.Start("tttSidekickMSG_attacker")
@@ -148,6 +151,7 @@ function SWEP:ShootBullet(dmg, recoil, numbul, cone)
 	bullet.Force = 10
 	bullet.Damage = 0
 	bullet.Callback = SidekickDeagleCallback
+	
 	self:GetOwner():FireBullets(bullet)
 
 	self.BaseClass.ShootBullet(self, dmg, recoil, numbul, cone)
@@ -156,6 +160,7 @@ end
 function SWEP:OnRemove()
 	if CLIENT then 
 		STATUS:RemoveStatus("ttt2_sidekick_deagle_reloading") 
+		
 		timer.Stop("ttt2_sidekick_deagle_refill_timer")
 	end
 end
