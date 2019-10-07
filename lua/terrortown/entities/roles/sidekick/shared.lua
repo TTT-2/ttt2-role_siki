@@ -18,7 +18,6 @@ ROLE.color = Color(0, 0, 0, 255) -- ...
 ROLE.dkcolor = Color(0, 0, 0, 255) -- ...
 ROLE.bgcolor = Color(255, 255, 255, 255) -- ...
 ROLE.abbr = "siki" -- abbreviation
-ROLE.defaultEquipment = SPECIAL_EQUIPMENT -- here you can set up your own default equipment
 ROLE.surviveBonus = 1 -- bonus multiplier for every survive while another player was killed
 ROLE.scoreKillsMultiplier = 5 -- multiplier for kill of player of another team
 ROLE.scoreTeamKillsMultiplier = -16 -- multiplier for teamkill
@@ -29,24 +28,18 @@ ROLE.preventFindCredits = true
 ROLE.preventKillCredits = true
 ROLE.preventTraitorAloneCredits = true
 
-ROLE.conVarData = {
-	credits = 1, -- the starting credits of a specific role
-	shopFallback = SHOP_FALLBACK_TRAITOR
-}
 
-hook.Add("TTTUlxDynamicRCVars", "TTTUlxDynamicSikiCVars", function(tbl)
-	tbl[ROLE_SIDEKICK] = tbl[ROLE_SIDEKICK] or {}
+function ROLE:PreInitialize()
+	self.defaultEquipment = SPECIAL_EQUIPMENT
 
-	table.insert(tbl[ROLE_SIDEKICK], {cvar = "ttt2_siki_protection_time", slider = true, min = 0, max = 60, desc = "Protection Time for new Sidekick (Def. 1)"})
-	table.insert(tbl[ROLE_SIDEKICK], {cvar = "ttt2_siki_mode", checkbox = true, desc = "Normal mode for the Sidekick (Def. 1). 1 = Sidekick -> Jackal. 2 = Sidekick receive targets"})
-	table.insert(tbl[ROLE_SIDEKICK], {cvar = "ttt2_siki_deagle_refill", checkbox = true, desc = "The Sidekick Deagle can be refilled when you missed a shot. (Def. 1)"})
-	table.insert(tbl[ROLE_SIDEKICK], {cvar = "ttt2_siki_deagle_refill_cd", slider = true, min = 1, max = 300, desc = "Seconds to Refill (Def. 120)"})
-	table.insert(tbl[ROLE_SIDEKICK], {cvar = "ttt2_siki_deagle_refill_cd_per_kill", slider = true, min = 1, max = 300, desc = "CD Reduction per Kill (Def. 60)"})
-end)
+	self.conVarData = {
+		credits = 1, -- the starting credits of a specific role
+		shopFallback = SHOP_FALLBACK_TRAITOR
+	}
+end
 
--- if sync of roles has finished
-if CLIENT then
-	hook.Add("TTT2FinishedLoading", "SikiInitT", function()
+function ROLE:Initialize()
+	if CLIENT then
 		-- Role specific language elements
 		LANG.AddToLanguage("English", SIDEKICK.name, "Sidekick")
 		LANG.AddToLanguage("English", "target_" .. SIDEKICK.name, "Sidekick")
@@ -59,20 +52,33 @@ if CLIENT then
 		LANG.AddToLanguage("Deutsch", "ttt2_desc_" .. SIDEKICK.name, [[Du musst mit deinem Mate gewinnen!]])
 		LANG.AddToLanguage("Deutsch", "body_found_" .. SIDEKICK.abbr, "Er war ein Kumpane!")
 		LANG.AddToLanguage("Deutsch", "search_role_" .. SIDEKICK.abbr, "Diese Person war ein Kumpane!")
-	end)
-else
-	hook.Add("TTT2RolesLoaded", "AddCrystalKnifeToDefaultSikiLO", function()
-		if TTTH then
-			local wep = weapons.GetStored("weapon_ttt_crystalknife")
-			if wep then
-				wep.InLoadoutFor = wep.InLoadoutFor or {}
+	end
+end
 
-				if not table.HasValue(wep.InLoadoutFor, ROLE_SIDEKICK) then
-					table.insert(wep.InLoadoutFor, ROLE_SIDEKICK)
-				end
-			end
-		end
-	end)
+hook.Add("TTTUlxDynamicRCVars", "TTTUlxDynamicSikiCVars", function(tbl)
+	tbl[ROLE_SIDEKICK] = tbl[ROLE_SIDEKICK] or {}
+
+	table.insert(tbl[ROLE_SIDEKICK], {cvar = "ttt2_siki_protection_time", slider = true, min = 0, max = 60, desc = "Protection Time for new Sidekick (Def. 1)"})
+	table.insert(tbl[ROLE_SIDEKICK], {cvar = "ttt2_siki_mode", checkbox = true, desc = "Normal mode for the Sidekick (Def. 1). 1 = Sidekick -> Jackal. 2 = Sidekick receive targets"})
+	table.insert(tbl[ROLE_SIDEKICK], {cvar = "ttt2_siki_deagle_refill", checkbox = true, desc = "The Sidekick Deagle can be refilled when you missed a shot. (Def. 1)"})
+	table.insert(tbl[ROLE_SIDEKICK], {cvar = "ttt2_siki_deagle_refill_cd", slider = true, min = 1, max = 300, desc = "Seconds to Refill (Def. 120)"})
+	table.insert(tbl[ROLE_SIDEKICK], {cvar = "ttt2_siki_deagle_refill_cd_per_kill", slider = true, min = 1, max = 300, desc = "CD Reduction per Kill (Def. 60)"})
+end)
+
+if SERVER then
+	function ROLE:GiveRoleLoadout(ply, isRoleChange)
+		if not GetGlobalBool("ttt2_classes") or not GetGlobalBool("ttt2_heroes") then return end
+		if not TTTH then return end
+
+		ply:GiveEquipmentWeapon("weapon_ttt_crystalknife")
+	end
+
+	function ROLE:RemoveRoleLoadout(ply, isRoleChange)
+		if not GetGlobalBool("ttt2_classes") or not GetGlobalBool("ttt2_heroes") then return end
+		if not TTTH then return end
+
+		ply:RemoveEquipmentWeapon("weapon_ttt_crystalknife")
+	end
 end
 
 function GetDarkenColor(color)
