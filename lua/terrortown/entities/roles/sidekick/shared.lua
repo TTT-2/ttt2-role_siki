@@ -14,22 +14,22 @@ if not plymeta then return end
 
 ROLE.Base = "ttt_role_base"
 
-ROLE.color = Color(0, 0, 0, 255) -- ...
-ROLE.dkcolor = Color(0, 0, 0, 255) -- ...
-ROLE.bgcolor = Color(255, 255, 255, 255) -- ...
-ROLE.abbr = "siki" -- abbreviation
-ROLE.surviveBonus = 1 -- bonus multiplier for every survive while another player was killed
-ROLE.scoreKillsMultiplier = 5 -- multiplier for kill of player of another team
-ROLE.scoreTeamKillsMultiplier = -16 -- multiplier for teamkill
-ROLE.preventWin = true
-ROLE.notSelectable = true -- role cant be selected!
-ROLE.disableSync = true -- just sync if body got found or round is over
-ROLE.preventFindCredits = true
-ROLE.preventKillCredits = true
-ROLE.preventTraitorAloneCredits = true
-
-
 function ROLE:PreInitialize()
+	self.color = Color(0, 0, 0, 255)
+	self.dkcolor = Color(0, 0, 0, 255)
+	self.bgcolor = Color(255, 255, 255, 255)
+
+	self.abbr = "siki"
+	self.surviveBonus = 1
+	self.scoreKillsMultiplier = 5
+	self.scoreTeamKillsMultiplier = -16
+	self.preventWin = true
+	self.notSelectable = true
+	self.disableSync = true
+	self.preventFindCredits = true
+	self.preventKillCredits = true
+	self.preventTraitorAloneCredits = true
+
 	self.defaultEquipment = SPECIAL_EQUIPMENT
 
 	self.conVarData = {
