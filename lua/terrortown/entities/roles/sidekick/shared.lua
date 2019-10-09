@@ -77,7 +77,7 @@ if SERVER then
 		if not GetGlobalBool("ttt2_classes") or not GetGlobalBool("ttt2_heroes") then return end
 		if not TTTH then return end
 
-		ply:RemoveEquipmentWeapon("weapon_ttt_crystalknife")
+		ply:StripWeapon("weapon_ttt_crystalknife")
 	end
 end
 
