@@ -287,7 +287,7 @@ else -- CLIENT
 		if not IsValid(ply) or not ply:IsPlayer() then return end
 
 		ply.mateSubRole = net.ReadUInt(ROLE_BITS)
-		ply:SetRoleColor(COLOR_BLACK)
+		ply:SetRoleColor(ply:GetRoleColor())
 	end)
 
 	-- Modify colors
