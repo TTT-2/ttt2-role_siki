@@ -103,7 +103,7 @@ local function SidekickDeagleCallback(attacker, tr, dmg)
 
 	--no/bad hit: (send message), start timer and return
 	if not IsValid(target) or not target:IsPlayer() or not target:IsTerror() or target:IsInTeam(attacker) then
-		if IsValid(target) and target:IsInTeam(attacker) then
+		if IsValid(target) and target:IsPlayer() and target:IsTerror() and target:IsInTeam(attacker) then
 			net.Start("tttSidekickSameTeam")
 			net.Send(attacker)	
 		end	
