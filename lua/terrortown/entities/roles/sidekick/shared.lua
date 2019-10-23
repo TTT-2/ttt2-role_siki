@@ -158,7 +158,7 @@ if SERVER then
 		target:SetCredits(target:GetCredits() + credits)
 
 		net.Start("TTT2SyncSikiColor")
-		net.WriteString(target:EntIndex())
+		net.WriteEntity(target)
 		net.WriteUInt(target.mateSubRole, ROLE_BITS)
 		net.Broadcast()
 
@@ -282,7 +282,7 @@ else -- CLIENT
 	end)
 
 	net.Receive("TTT2SyncSikiColor", function()
-		local ply = Entity(net.ReadString())
+		local ply = net.ReadEntity()
 
 		if not IsValid(ply) or not ply:IsPlayer() then return end
 
