@@ -97,37 +97,11 @@ function GetDarkenColor(color)
 	return col
 end
 
-local function tmpfnc(ply, mate, colorTable)
-	if IsValid(mate) and mate:IsPlayer() then
-		if colorTable == "dkcolor" then
-			return table.Copy(mate:GetRoleDkColor())
-		elseif colorTable == "bgcolor" then
-			return table.Copy(mate:GetRoleBgColor())
-		elseif colorTable == "color" then
-			return table.Copy(mate:GetRoleColor())
-		end
-	elseif ply.mateSubRole then
-		return table.Copy(GetRoleByIndex(ply.mateSubRole)[colorTable])
-	end
-end
-
 local function GetDarkenMateColor(ply, colorTable)
 	ply = ply or LocalPlayer()
 
 	if IsValid(ply) and ply.GetSubRole and ply:GetSubRole() and ply:GetSubRole() == ROLE_SIDEKICK then
-		local col
-		local deadSubRole = ply.lastMateSubRole
-		local mate = ply:GetSidekickMate()
-
-		if not ply:Alive() and deadSubRole then
-			if IsValid(mate) and mate:IsPlayer() and mate:IsInTeam(ply) and not mate:GetSubRoleData().unknownTeam then
-				col = tmpfnc(ply, mate, colorTable)
-			else
-				col = table.Copy(GetRoleByIndex(deadSubRole)[colorTable])
-			end
-		else
-			col = tmpfnc(ply, mate, colorTable)
-		end
+		local col = table.Copy(GetRoleByIndex(ply.mateSubRole)[colorTable])
 
 		return GetDarkenColor(col)
 	end
@@ -172,16 +146,21 @@ if SERVER then
 	function AddSidekick(target, attacker)
 		if target:IsSidekick() or attacker:IsSidekick() then return end
 
+		target.mateSubRole = attacker:GetSubRole()
+
+		target.sikiTimestamp = os.time()
+		target.sikiIssuer = attacker
+
 		target:SetNWEntity("binded_sidekick", attacker)
 		target:SetRole(ROLE_SIDEKICK, attacker:GetTeam())
 		local credits = target:GetCredits()
 		target:SetDefaultCredits()
 		target:SetCredits(target:GetCredits() + credits)
 
-		target.mateSubRole = attacker:GetSubRole()
-
-		target.sikiTimestamp = os.time()
-		target.sikiIssuer = attacker
+		net.Start("TTT2SyncSikiColor")
+		net.WriteString(target:EntIndex())
+		net.WriteUInt(target.mateSubRole, ROLE_BITS)
+		net.Broadcast()
 
 		timer.Simple(0.1, SendFullStateUpdate)
 	end
@@ -268,12 +247,6 @@ if SERVER then
 				end
 			end
 		end
-
-		local mate = ply:GetSidekickMate() -- Is Sidekick?
-
-		if not IsValid(mate) or ply.lastMateSubRole then return end
-			
-		ply.lastMateSubRole = ply.mateSubRole or mate:GetSubRole()
 	end)
 	
 	hook.Add("PlayerSpawn", "PlayerSpawnsAsSidekick", function(ply)
@@ -288,16 +261,6 @@ if SERVER then
 		if IsValid(p) and p:GetSubRole() == ROLE_SIDEKICK and ply:IsInTeam(p) and (not ply:GetSubRoleData().unknownTeam or ply == p:GetSidekickMate()) then
 			return true
 		end
-	end)
-
-	hook.Add("TTTBodyFound", "SikiSendLastColor", function(ply, deadply, rag)
-		if not IsValid(deadply) or deadply:GetSubRole() ~= ROLE_SIDEKICK then return end
-
-		net.Start("TTT2SyncSikiColor")
-		net.WriteString(deadply:EntIndex())
-		net.WriteUInt(deadply.mateSubRole, ROLE_BITS)
-		net.WriteUInt(deadply.lastMateSubRole, ROLE_BITS)
-		net.Broadcast()
 	end)
 
 	-- fix that innos can see their sikis
@@ -324,7 +287,6 @@ else -- CLIENT
 		if not IsValid(ply) or not ply:IsPlayer() then return end
 
 		ply.mateSubRole = net.ReadUInt(ROLE_BITS)
-		ply.lastMateSubRole = net.ReadUInt(ROLE_BITS)
 		ply:SetRoleColor(COLOR_BLACK)
 	end)
 
@@ -346,7 +308,6 @@ end)
 hook.Add("TTTPrepareRound", "SikiPrepareRound", function()
 	for _, ply in ipairs(player.GetAll()) do
 		ply.mateSubRole = nil
-		ply.lastMateSubRole = nil
 		ply.spawn_as_sidekick = nil
 
 		if SERVER then
