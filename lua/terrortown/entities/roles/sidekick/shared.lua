@@ -16,8 +16,6 @@ ROLE.Base = "ttt_role_base"
 
 function ROLE:PreInitialize()
 	self.color = Color(0, 0, 0, 255)
-	self.dkcolor = Color(0, 0, 0, 255)
-	self.bgcolor = Color(255, 255, 255, 255)
 
 	self.abbr = "siki"
 	self.surviveBonus = 1
@@ -272,10 +270,10 @@ if SERVER then
 		local mate = ply:GetSidekickMate() -- Is Sidekick?
 
 		if not IsValid(mate) or ply.lastMateSubRole then return end
-			
+
 		ply.lastMateSubRole = ply.mateSubRole or mate:GetSubRole()
 	end)
-	
+
 	hook.Add("PlayerSpawn", "PlayerSpawnsAsSidekick", function(ply)
 		if not ply.spawn_as_sidekick then return end
 
@@ -313,7 +311,9 @@ if SERVER then
 			end
 		end
 	end)
-else -- CLIENT
+end
+
+if CLIENT then
 	net.Receive("TTT_HealPlayer", function()
 		HealPlayer(LocalPlayer())
 	end)
@@ -366,7 +366,7 @@ if SERVER then
 	-- CLASSES syncing
 	hook.Add("TTT2UpdateSubrole", "TTTCSidekickMod", function(siki, oldRole, role)
 		if not TTTC or not siki:IsActive() or role ~= ROLE_SIDEKICK or GetConVar("ttt2_siki_mode"):GetBool() then return end
-			
+
 		for _, ply in ipairs(player.GetAll()) do
 			net.Start("TTT2SikiSyncClasses")
 			net.WriteEntity(ply)
@@ -374,7 +374,11 @@ if SERVER then
 			net.Send(siki)
 		end
 	end)
-else
+
+	include("target.lua")
+end
+
+if CLIENT then
 	net.Receive("TTT2SikiSyncClasses", function(len)
 		local target = net.ReadEntity()
 		if not IsValid(target) then return end
@@ -386,8 +390,4 @@ else
 
 		target:SetClass(hr)
 	end)
-end
-
-if SERVER then
-	include("target.lua")
 end

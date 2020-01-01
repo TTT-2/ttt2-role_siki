@@ -105,14 +105,14 @@ local function SidekickDeagleCallback(attacker, tr, dmg)
 	if not IsValid(target) or not target:IsPlayer() or not target:IsTerror() or target:IsInTeam(attacker) then
 		if IsValid(target) and target:IsPlayer() and target:IsTerror() and target:IsInTeam(attacker) then
 			net.Start("tttSidekickSameTeam")
-			net.Send(attacker)	
-		end	
-		
+			net.Send(attacker)
+		end
+
 		if ttt2_sidekick_deagle_refill_conv:GetBool() then
 			net.Start("tttSidekickDeagleMiss")
 			net.Send(attacker)
 		end
-		
+
 		return
 	end
 
@@ -120,9 +120,9 @@ local function SidekickDeagleCallback(attacker, tr, dmg)
 	if IsValid(deagle) then
 		deagle:Remove()
 	end
-	
+
 	AddSidekick(target, attacker)
-	
+
 	net.Start("tttSidekickMSG_attacker")
 	net.WriteEntity(target)
 	net.Send(attacker)
@@ -140,7 +140,7 @@ end
 
 function SWEP:ShootBullet(dmg, recoil, numbul, cone)
 	cone = cone or 0.01
-	
+
 	local bullet = {}
 	bullet.Num = 1
 	bullet.Src = self:GetOwner():GetShootPos()
@@ -151,16 +151,16 @@ function SWEP:ShootBullet(dmg, recoil, numbul, cone)
 	bullet.Force = 10
 	bullet.Damage = 0
 	bullet.Callback = SidekickDeagleCallback
-	
+
 	self:GetOwner():FireBullets(bullet)
 
 	self.BaseClass.ShootBullet(self, dmg, recoil, numbul, cone)
 end
 
 function SWEP:OnRemove()
-	if CLIENT then 
-		STATUS:RemoveStatus("ttt2_sidekick_deagle_reloading") 
-		
+	if CLIENT then
+		STATUS:RemoveStatus("ttt2_sidekick_deagle_reloading")
+
 		timer.Stop("ttt2_sidekick_deagle_refill_timer")
 	end
 end
@@ -191,7 +191,7 @@ if SERVER then
 	hook.Add("PlayerDeath", "SidekickDeagleRefillReduceCD", function(victim, inflictor, attacker)
 		if IsValid(attacker) and attacker:IsPlayer() and attacker:HasWeapon("weapon_ttt2_sidekickdeagle") and ttt2_sidekick_deagle_refill_conv:GetBool() then
 			net.Start("tttSidekickRefillCDReduced")
-			net.Send(attacker)	
+			net.Send(attacker)
 		end
 	end)
 end
@@ -222,7 +222,7 @@ if CLIENT then
 		LANG.AddToLanguage("Deutsch", "ttt2_siki_recharged", "Deine Sidekick Deagle wurde wieder aufgefüllt.")
 	end)
 
-	hook.Add("Initialize", "ttt_sidekick_init_status", function() 
+	hook.Add("Initialize", "ttt_sidekick_init_status", function()
 		STATUS:RegisterStatus("ttt2_sidekick_deagle_reloading", {
 			hud = Material("vgui/ttt/hud_icon_deagle.png"),
 			type = "bad"
@@ -247,17 +247,17 @@ if CLIENT then
 
 	net.Receive("tttSidekickRefillCDReduced", function()
 		if not timer.Exists("ttt2_sidekick_deagle_refill_timer") or not LocalPlayer():HasWeapon("weapon_ttt2_sidekickdeagle") then return end
-		
+
 		local timeLeft = timer.TimeLeft("ttt2_sidekick_deagle_refill_timer") or 0
 		local newTime = math.max(timeLeft - ttt2_siki_deagle_refill_cd_per_kill_conv:GetInt(), 0.1)
-		
+
 		local wep = LocalPlayer():GetWeapon("weapon_ttt2_sidekickdeagle")
 		if not IsValid(wep) then return end
-		
+
 		timer.Adjust("ttt2_sidekick_deagle_refill_timer", newTime, 1, function()
 			if not IsValid(wep) then return end
 
-			SidekickDeagleRefilled(wep) 
+			SidekickDeagleRefilled(wep)
 		end)
 
 		if STATUS.active["ttt2_sidekick_deagle_reloading"] then
@@ -275,16 +275,16 @@ if CLIENT then
 
 		local wep = client:GetWeapon("weapon_ttt2_sidekickdeagle")
 		if not IsValid(wep) then return end
-		
+
 		local initialCD = ttt2_sidekick_deagle_refill_cd_conv:GetInt()
 
-		STATUS:AddTimedStatus("ttt2_sidekick_deagle_reloading", initialCD, true) 
-		
+		STATUS:AddTimedStatus("ttt2_sidekick_deagle_reloading", initialCD, true)
+
 		timer.Create("ttt2_sidekick_deagle_refill_timer", initialCD, 1, function()
 			if not IsValid(wep) then return end
 
 			SidekickDeagleRefilled(wep)
-		end)	
+		end)
 	end)
 
 	net.Receive("tttSidekickSameTeam", function()
@@ -293,7 +293,7 @@ if CLIENT then
 else
 	net.Receive("tttSidekickDeagleRefilled", function()
 		local wep = net.ReadEntity()
-		
+
 		if not IsValid(wep) then return end
 
 		wep:SetClip1(1)

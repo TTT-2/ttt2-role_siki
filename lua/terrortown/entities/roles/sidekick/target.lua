@@ -40,7 +40,7 @@ end
 
 local function SidekickTargetChanged(ply, _, attacker)
 	if GetConVar("ttt2_siki_mode"):GetBool() then return end
-	
+
 	ply.targetAttacker = nil
 
 	if GetRoundState() == ROUND_ACTIVE and IsValid(attacker) and attacker:IsPlayer() and (not attacker.IsGhost or not attacker:IsGhost()) then
@@ -51,7 +51,7 @@ hook.Add("PlayerDeath", "SidekickTargetChanged", SidekickTargetChanged)
 
 local function SidekickTargetDied(ply)
 	if GetConVar("ttt2_siki_mode"):GetBool() then return end
-	
+
 	local attacker = ply.targetAttacker
 
 	if IsValid(attacker) and attacker:GetSubRole() == ROLE_SIDEKICK and (not attacker.IsGhost or not attacker:IsGhost()) and attacker:GetTargetPlayer() then
@@ -93,7 +93,7 @@ hook.Add("PostPlayerDeath", "SidekickTargetDied", SidekickTargetDied)
 
 local function SidekickTargetSpawned(ply)
 	if GetConVar("ttt2_siki_mode"):GetBool() then return end
-	
+
 	if GetRoundState() == ROUND_ACTIVE then
 		for _, v in ipairs(player.GetAll()) do
 			local target = v:GetTargetPlayer()
@@ -114,7 +114,7 @@ hook.Add("PlayerSpawn", "SidekickTargetSpawned", SidekickTargetSpawned)
 
 local function SidekickTargetDisconnected(ply)
 	if GetConVar("ttt2_siki_mode"):GetBool() then return end
-	
+
 	for _, v in ipairs(player.GetAll()) do
 		if v:GetSubRole() == ROLE_SIDEKICK and v:GetTargetPlayer() == ply then
 			SelectNewTarget(v)
@@ -125,7 +125,7 @@ hook.Add("PlayerDisconnected", "SidekickTargetDisconnected", SidekickTargetDisco
 
 local function SidekickTargetRoleChanged(ply, old, new)
 	if GetConVar("ttt2_siki_mode"):GetBool() then return end
-	
+
 	if new == ROLE_SIDEKICK then
 		SelectNewTarget(ply)
 	elseif old == ROLE_SIDEKICK then
@@ -144,7 +144,7 @@ hook.Add("TTT2UpdateSubrole", "SidekickTargetRoleChanged", SidekickTargetRoleCha
 
 local function SidekickGotSelected()
 	if GetConVar("ttt2_siki_mode"):GetBool() then return end
-	
+
 	for _, ply in ipairs(player.GetAll()) do
 		if ply:GetSubRole() == ROLE_SIDEKICK then
 			SelectNewTarget(ply)
