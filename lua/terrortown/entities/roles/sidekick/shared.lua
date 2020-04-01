@@ -45,6 +45,12 @@ function ROLE:Initialize()
 		LANG.AddToLanguage("English", "body_found_" .. SIDEKICK.abbr, "This was a Sidekick...")
 		LANG.AddToLanguage("English", "search_role_" .. SIDEKICK.abbr, "This person was a Sidekick!")
 
+		LANG.AddToLanguage("Italian", SIDEKICK.name, "Spalla")
+		LANG.AddToLanguage("Italian", "target_" .. SIDEKICK.name, "Spalla")
+		LANG.AddToLanguage("Italian", "ttt2_desc_" .. SIDEKICK.name, [[Devi vincere con il tuo compagno!]])
+		LANG.AddToLanguage("Italian", "body_found_" .. SIDEKICK.abbr, "Era una Spalla...")
+		LANG.AddToLanguage("Italian", "search_role_" .. SIDEKICK.abbr, "Questa persona era una Spalla!")
+	
 		LANG.AddToLanguage("Deutsch", SIDEKICK.name, "Kumpane")
 		LANG.AddToLanguage("Deutsch", "target_" .. SIDEKICK.name, "Kumpane")
 		LANG.AddToLanguage("Deutsch", "ttt2_desc_" .. SIDEKICK.name, [[Du musst mit deinem Mate gewinnen!]])
