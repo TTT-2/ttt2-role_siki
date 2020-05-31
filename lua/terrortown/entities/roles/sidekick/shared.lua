@@ -36,37 +36,44 @@ function ROLE:PreInitialize()
 	}
 end
 
-function ROLE:Initialize()
-	if CLIENT then
-		-- Role specific language elements
-		LANG.AddToLanguage("English", SIDEKICK.name, "Sidekick")
-		LANG.AddToLanguage("English", "target_" .. SIDEKICK.name, "Sidekick")
-		LANG.AddToLanguage("English", "ttt2_desc_" .. SIDEKICK.name, [[You need to win with your mate!]])
-		LANG.AddToLanguage("English", "body_found_" .. SIDEKICK.abbr, "This was a Sidekick...")
-		LANG.AddToLanguage("English", "search_role_" .. SIDEKICK.abbr, "This person was a Sidekick!")
-
-		LANG.AddToLanguage("Italiano", SIDEKICK.name, "Sidekick")
-		LANG.AddToLanguage("Italiano", "target_" .. SIDEKICK.name, "Sidekick")
-		LANG.AddToLanguage("Italiano", "ttt2_desc_" .. SIDEKICK.name, [[Devi vincere con il tuo compagno!]])
-		LANG.AddToLanguage("Italiano", "body_found_" .. SIDEKICK.abbr, "Era un Sidekick...")
-		LANG.AddToLanguage("Italiano", "search_role_" .. SIDEKICK.abbr, "Questa persona era un Sidekick!")
-	
-		LANG.AddToLanguage("Deutsch", SIDEKICK.name, "Kumpane")
-		LANG.AddToLanguage("Deutsch", "target_" .. SIDEKICK.name, "Kumpane")
-		LANG.AddToLanguage("Deutsch", "ttt2_desc_" .. SIDEKICK.name, [[Du musst mit deinem Mate gewinnen!]])
-		LANG.AddToLanguage("Deutsch", "body_found_" .. SIDEKICK.abbr, "Er war ein Kumpane!")
-		LANG.AddToLanguage("Deutsch", "search_role_" .. SIDEKICK.abbr, "Diese Person war ein Kumpane!")
-	end
-end
-
 hook.Add("TTTUlxDynamicRCVars", "TTTUlxDynamicSikiCVars", function(tbl)
 	tbl[ROLE_SIDEKICK] = tbl[ROLE_SIDEKICK] or {}
 
-	table.insert(tbl[ROLE_SIDEKICK], {cvar = "ttt2_siki_protection_time", slider = true, min = 0, max = 60, desc = "Protection Time for new Sidekick (Def. 1)"})
-	table.insert(tbl[ROLE_SIDEKICK], {cvar = "ttt2_siki_mode", checkbox = true, desc = "Normal mode for the Sidekick (Def. 1). 1 = Sidekick -> Jackal. 2 = Sidekick receive targets"})
-	table.insert(tbl[ROLE_SIDEKICK], {cvar = "ttt2_siki_deagle_refill", checkbox = true, desc = "The Sidekick Deagle can be refilled when you missed a shot. (Def. 1)"})
-	table.insert(tbl[ROLE_SIDEKICK], {cvar = "ttt2_siki_deagle_refill_cd", slider = true, min = 1, max = 300, desc = "Seconds to Refill (Def. 120)"})
-	table.insert(tbl[ROLE_SIDEKICK], {cvar = "ttt2_siki_deagle_refill_cd_per_kill", slider = true, min = 1, max = 300, desc = "CD Reduction per Kill (Def. 60)"})
+	table.insert(tbl[ROLE_SIDEKICK], {
+		cvar = "ttt2_siki_protection_time",
+		slider = true,
+		min = 0,
+		max = 60,
+		desc = "Protection Time for new Sidekick (Def. 1)"
+	})
+
+	table.insert(tbl[ROLE_SIDEKICK], {
+		cvar = "ttt2_siki_mode",
+		checkbox = true,
+		desc = "Normal mode for the Sidekick (Def. 1). 1 = Sidekick -> Jackal. 2 = Sidekick receive targets"
+	})
+
+	table.insert(tbl[ROLE_SIDEKICK], {
+		cvar = "ttt2_siki_deagle_refill",
+		checkbox = true,
+		desc = "The Sidekick Deagle can be refilled when you missed a shot. (Def. 1)"
+	})
+
+	table.insert(tbl[ROLE_SIDEKICK], {
+		cvar = "ttt2_siki_deagle_refill_cd",
+		slider = true,
+		min = 1,
+		max = 300,
+		desc = "Seconds to Refill (Def. 120)"
+	})
+
+	table.insert(tbl[ROLE_SIDEKICK], {
+		cvar = "ttt2_siki_deagle_refill_cd_per_kill",
+		slider = true,
+		min = 1,
+		max = 300,
+		desc = "CD Reduction per Kill (Def. 60)"
+	})
 end)
 
 if SERVER then
@@ -234,18 +241,18 @@ if SERVER then
 			local enabled = GetConVar("ttt2_siki_mode"):GetBool()
 
 			for _, siki in ipairs(sikis) do
-				if IsValid(siki) and siki:IsPlayer() and siki:IsActive() then
-					siki:SetNWEntity("binded_sidekick", nil)
+				if not IsValid(siki) or not siki:IsPlayer() or not siki:IsActive() then continue end
 
-					if enabled then
-						local newRole = siki.mateSubRole or (IsValid(mate) and mate:GetSubRole())
-						if newRole then
-							siki:SetRole(newRole, TEAM_NOCHANGE)
+				siki:SetNWEntity("binded_sidekick", nil)
 
-							SendFullStateUpdate()
-						end
-					end
-				end
+				if not enabled then continue end
+
+				local newRole = siki.mateSubRole or (IsValid(mate) and mate:GetSubRole())
+
+				if not newRole then continue end
+
+				siki:SetRole(newRole, TEAM_NOCHANGE)
+				SendFullStateUpdate()
 			end
 		end
 	end)
@@ -255,25 +262,27 @@ if SERVER then
 			local sikis = ply:GetSidekicks()
 			if sikis then
 				for _, siki in ipairs(sikis) do
-					if IsValid(siki) and siki:IsActive() then
-						siki:SetNWEntity("binded_sidekick", nil)
+					if not IsValid(siki) or not siki:IsActive() then continue end
 
-						local newRole = siki.mateSubRole or ply:GetSubRole()
-						if newRole then
-							siki:SetRole(newRole, TEAM_NOCHANGE)
+					siki:SetNWEntity("binded_sidekick", nil)
 
-							SendFullStateUpdate()
-						end
+					local newRole = siki.mateSubRole or ply:GetSubRole()
 
-						if #sikis == 1 then -- a player can just be binded with one player as sidekick
-							ply.spawn_as_sidekick = siki
-						end
+					if newRole then
+						siki:SetRole(newRole, TEAM_NOCHANGE)
+
+						SendFullStateUpdate()
+					end
+
+					-- a player can just be binded with one player as sidekick
+					if #sikis == 1 then
+						ply.spawn_as_sidekick = siki
 					end
 				end
 			end
 		end
 
-		local mate = ply:GetSidekickMate() -- Is Sidekick?
+		local mate = ply:GetSidekickMate()
 
 		if not IsValid(mate) or ply.lastMateSubRole then return end
 
