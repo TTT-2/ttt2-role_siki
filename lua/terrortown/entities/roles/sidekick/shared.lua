@@ -261,7 +261,7 @@ if SERVER then
 	end)
 
 	hook.Add("PostPlayerDeath", "PlayerDeathChangeSiki", function(ply)
-		if GetConVar("ttt2_siki_mode"):GetInt()==2 or GetConVar("ttt2_siki_mode"):GetInt()==3 then
+		if GetConVar("ttt2_siki_mode"):GetInt()>1 then
 			local sikis = ply:GetSidekicks()
 			if sikis then
 				for _, siki in ipairs(sikis) do
@@ -383,7 +383,7 @@ if SERVER then
 
 	-- CLASSES syncing
 	hook.Add("TTT2UpdateSubrole", "TTTCSidekickMod", function(siki, oldRole, role)
-		if not TTTC or not siki:IsActive() or role ~= ROLE_SIDEKICK or GetConVar("ttt2_siki_mode"):GetInt()==1 or GetConVar ("ttt2_siki_mode"):GetInt()==2 then return end
+		if not TTTC or not siki:IsActive() or role ~= ROLE_SIDEKICK or GetConVar("ttt2_siki_mode"):GetInt()>1 then return end
 
 		for _, ply in ipairs(player.GetAll()) do
 			net.Start("TTT2SikiSyncClasses")
