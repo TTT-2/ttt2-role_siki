@@ -8,7 +8,7 @@ if SERVER then
 	CreateConVar("ttt2_siki_protection_time", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE})
 end
 
-CreateConVar("ttt2_siki_mode", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED}, "0 = Sidekick doesn't become Jackal and can't win alone, but gets targets / 1 = Sidekick becomes Jackal on Jackals death / 2 = Sidekick doesn't become Jackal but can win alone and gets targets", 1, 3)
+CreateConVar("ttt2_siki_mode", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED}, "0 = Sidekick doesn't become Jackal and can't win alone, but gets targets / 1 = Sidekick becomes Jackal on Jackals death / 2 = Sidekick doesn't become Jackal but can win alone and gets targets", 0, 2)
 
 local plymeta = FindMetaTable("Player")
 if not plymeta then return end
