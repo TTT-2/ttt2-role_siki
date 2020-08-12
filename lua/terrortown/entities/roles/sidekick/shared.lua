@@ -21,7 +21,7 @@ function ROLE:PreInitialize()
 	self.surviveBonus = 1
 	self.scoreKillsMultiplier = 5
 	self.scoreTeamKillsMultiplier = -16
-	self.preventWin = true
+	self.preventWin = ttt2_siki_mode == 3
 	self.notSelectable = true
 	self.disableSync = true
 	self.preventFindCredits = true
@@ -49,8 +49,10 @@ hook.Add("TTTUlxDynamicRCVars", "TTTUlxDynamicSikiCVars", function(tbl)
 
 	table.insert(tbl[ROLE_SIDEKICK], {
 		cvar = "ttt2_siki_mode",
-		checkbox = true,
-		desc = "Normal mode for the Sidekick (Def. 1). 1 = Sidekick -> Jackal. 2 = Sidekick receive targets"
+		slider = true,
+		min = 1,
+		max = 3,
+		desc = "Normal mode for the Sidekick (Def. 1). 1 = Sidekick -> Jackal. 2 = Sidekick receive targets. 3 = Like 2, but the Game will only end if the Sidekick ist the last one alive or if the Sidekick is dead."
 	})
 
 	table.insert(tbl[ROLE_SIDEKICK], {
@@ -77,14 +79,14 @@ hook.Add("TTTUlxDynamicRCVars", "TTTUlxDynamicSikiCVars", function(tbl)
 end)
 
 if SERVER then
-	function ROLE:GiveRoleLoadout(ply, isRoleChange)
+	function ROLE:GiveRoleLoadout(ply, _)
 		if not GetGlobalBool("ttt2_classes") or not GetGlobalBool("ttt2_heroes") then return end
 		if not TTTH then return end
 
 		ply:GiveEquipmentWeapon("weapon_ttt_crystalknife")
 	end
 
-	function ROLE:RemoveRoleLoadout(ply, isRoleChange)
+	function ROLE:RemoveRoleLoadout(ply, _)
 		if not GetGlobalBool("ttt2_classes") or not GetGlobalBool("ttt2_heroes") then return end
 		if not TTTH then return end
 
@@ -238,14 +240,14 @@ if SERVER then
 		end
 
 		if sikis then
-			local enabled = GetConVar("ttt2_siki_mode"):GetBool()
+			local enabled = GetConVar("ttt2_siki_mode"):GetInt()
 
 			for _, siki in ipairs(sikis) do
 				if not IsValid(siki) or not siki:IsPlayer() or not siki:IsActive() then continue end
 
 				siki:SetNWEntity("binded_sidekick", nil)
 
-				if not enabled then continue end
+				if enabled==1 then continue end
 
 				local newRole = siki.mateSubRole or (IsValid(mate) and mate:GetSubRole())
 
@@ -258,7 +260,7 @@ if SERVER then
 	end)
 
 	hook.Add("PostPlayerDeath", "PlayerDeathChangeSiki", function(ply)
-		if GetConVar("ttt2_siki_mode"):GetBool() then
+		if GetConVar("ttt2_siki_mode"):GetInt()==2 or GetConVar("ttt2_siki_mode"):GetInt()==3 then
 			local sikis = ply:GetSidekicks()
 			if sikis then
 				for _, siki in ipairs(sikis) do
@@ -303,7 +305,7 @@ if SERVER then
 		end
 	end)
 
-	hook.Add("TTTBodyFound", "SikiSendLastColor", function(ply, deadply, rag)
+	hook.Add("TTTBodyFound", "SikiSendLastColor", function(_, deadply, _)
 		if not IsValid(deadply) or deadply:GetSubRole() ~= ROLE_SIDEKICK then return end
 
 		net.Start("TTT2SyncSikiColor")
@@ -372,15 +374,15 @@ end)
 
 -- SIDEKICK HITMAN FUNCTION
 if SERVER then
-	hook.Add("TTT2CheckCreditAward", "TTTCSidekickMod", function(victim, attacker)
-		if IsValid(attacker) and attacker:IsPlayer() and attacker:IsActive() and attacker:GetSubRole() == ROLE_SIDEKICK and not GetConVar("ttt2_siki_mode"):GetBool() then
+	hook.Add("TTT2CheckCreditAward", "TTTCSidekickMod", function(_, attacker)
+		if IsValid(attacker) and attacker:IsPlayer() and attacker:IsActive() and attacker:GetSubRole() == ROLE_SIDEKICK and GetConVar("ttt2_siki_mode"):GetInt()==1 then
 			return false -- prevent awards
 		end
 	end)
 
 	-- CLASSES syncing
-	hook.Add("TTT2UpdateSubrole", "TTTCSidekickMod", function(siki, oldRole, role)
-		if not TTTC or not siki:IsActive() or role ~= ROLE_SIDEKICK or GetConVar("ttt2_siki_mode"):GetBool() then return end
+	hook.Add("TTT2UpdateSubrole", "TTTCSidekickMod", function(siki, _, role)
+		if not TTTC or not siki:IsActive() or role ~= ROLE_SIDEKICK or GetConVar("ttt2_siki_mode"):GetInt()==1 or GetConVar ("ttt2_siki_mode"):GetInt()==2 then return end
 
 		for _, ply in ipairs(player.GetAll()) do
 			net.Start("TTT2SikiSyncClasses")
@@ -394,7 +396,7 @@ if SERVER then
 end
 
 if CLIENT then
-	net.Receive("TTT2SikiSyncClasses", function(len)
+	net.Receive("TTT2SikiSyncClasses", function(_)
 		local target = net.ReadEntity()
 		if not IsValid(target) then return end
 
