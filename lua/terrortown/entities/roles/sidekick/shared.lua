@@ -50,9 +50,14 @@ hook.Add("TTTUlxDynamicRCVars", "TTTUlxDynamicSikiCVars", function(tbl)
 
 	table.insert(tbl[ROLE_SIDEKICK], {
 		cvar = "ttt2_siki_mode",
-		slider = true,
-		min = 1,
-		max = 3
+		combobox= true,
+		desc = "Sidekick-Mode (Def. 1)",
+		choices = {
+		"1 = Respawn as your former teammate upon their death",
+		"2 = Sidekick doesn't become Jackal when he dies, Recieves Targets, Round ends if the Sidekick is the only one that is not in the same team every other alive player is",
+		"3 = Same as 2, but the Sidekick has to kill everyone else in order to end the round, even if the Jackal is dead."
+		},
+		numStart = 1
 	})
 
 	table.insert(tbl[ROLE_SIDEKICK], {
