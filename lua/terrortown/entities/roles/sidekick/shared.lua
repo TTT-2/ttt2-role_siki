@@ -8,7 +8,7 @@ if SERVER then
 	CreateConVar("ttt2_siki_protection_time", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE})
 end
 
-CreateConVar("ttt2_siki_mode", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Normal mode for the Sidekick (Def. 1). 1 = Sidekick -> Jackal. 2 = Sidekick receive targets. 3 = Like 2, but the Sidekick can win alone", 1, 3)
+CreateConVar("ttt2_siki_mode", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED}, "0 = Sidekick doesn't become Jackal and can't win alone, but gets targets / 1 = Sidekick becomes Jackal on Jackals death / 2 = Sidekick doesn't become Jackal but can win alone and gets targets", 1, 3)
 
 local plymeta = FindMetaTable("Player")
 if not plymeta then return end
@@ -22,7 +22,7 @@ function ROLE:PreInitialize()
 	self.surviveBonus = 1
 	self.scoreKillsMultiplier = 5
 	self.scoreTeamKillsMultiplier = -16
-	self.preventWin = GetConVar("ttt2_siki_mode"):GetInt() ~= 3
+	self.preventWin = GetConVar("ttt2_siki_mode"):GetInt() ~= 2
 	self.notSelectable = true
 	self.disableSync = true
 	self.preventFindCredits = true
@@ -38,7 +38,7 @@ function ROLE:PreInitialize()
 end
 
 cvars.AddChangeCallback( "ttt2_siki_mode", function(convar, oldValue, newValue)
-	GetRoleByAbbr("siki").preventWin = newValue ~= 3
+	GetRoleByAbbr("siki").preventWin = newValue ~= 2
 end)
 
 hook.Add("TTTUlxDynamicRCVars", "TTTUlxDynamicSikiCVars", function(tbl)
@@ -57,9 +57,9 @@ hook.Add("TTTUlxDynamicRCVars", "TTTUlxDynamicSikiCVars", function(tbl)
 		combobox = true,
 		desc = "Sidekick-Mode (Def. 1)",
 		choices = {
+		"0 = Sidekick doesn't become Jackal and can't win alone, but gets targets",
 		"1 = Sidekick becomes Jackal on Jackals death",
-		"2 = Sidekick doesn't become Jackal and can't win alone, but gets targets",
-		"3 = Sidekick doesn't become Jackal but can win alone and gets targets"
+		"2 = Sidekick doesn't become Jackal but can win alone and gets targets"
 		},
 		numStart = 1
 	})
