@@ -76,17 +76,18 @@ hook.Add("TTTUlxDynamicRCVars", "TTTUlxDynamicSikiCVars", function(tbl)
 		max = 300,
 		desc = "CD Reduction per Kill (Def. 60)"
 	})
+	})
 end)
 
 if SERVER then
-	function ROLE:GiveRoleLoadout(ply, _)
+	function ROLE:GiveRoleLoadout(ply, isRoleChange)
 		if not GetGlobalBool("ttt2_classes") or not GetGlobalBool("ttt2_heroes") then return end
 		if not TTTH then return end
 
 		ply:GiveEquipmentWeapon("weapon_ttt_crystalknife")
 	end
 
-	function ROLE:RemoveRoleLoadout(ply, _)
+	function ROLE:RemoveRoleLoadout(ply, isRoleChange)
 		if not GetGlobalBool("ttt2_classes") or not GetGlobalBool("ttt2_heroes") then return end
 		if not TTTH then return end
 
@@ -203,9 +204,9 @@ if SERVER then
 		local pTime = GetConVar("ttt2_siki_protection_time"):GetInt()
 
 		if pTime > 0 and IsValid(atk) and atk:IsPlayer()
-		and ply:IsActive() and atk:IsActive()
-		and atk:IsSidekick() and atk.sikiIssuer == ply
-		and atk.sikiTimestamp + pTime >= os.time() then
+				and ply:IsActive() and atk:IsActive()
+				and atk:IsSidekick() and atk.sikiIssuer == ply
+				and atk.sikiTimestamp + pTime >= os.time() then
 			return false
 		end
 	end)
@@ -214,8 +215,8 @@ if SERVER then
 		local attacker = dmginfo:GetAttacker()
 
 		if target:IsPlayer() and IsValid(attacker) and attacker:IsPlayer()
-		and (target:Health() - dmginfo:GetDamage()) <= 0
-		and hook.Run("TTT2SIKIAddSidekick", attacker, target)
+				and (target:Health() - dmginfo:GetDamage()) <= 0
+				and hook.Run("TTT2SIKIAddSidekick", attacker, target)
 		then
 			dmginfo:ScaleDamage(0)
 
@@ -305,7 +306,7 @@ if SERVER then
 		end
 	end)
 
-	hook.Add("TTTBodyFound", "SikiSendLastColor", function(_, deadply, _)
+	hook.Add("TTTBodyFound", "SikiSendLastColor", function(ply, deadply, rag)
 		if not IsValid(deadply) or deadply:GetSubRole() ~= ROLE_SIDEKICK then return end
 
 		net.Start("TTT2SyncSikiColor")
@@ -374,14 +375,14 @@ end)
 
 -- SIDEKICK HITMAN FUNCTION
 if SERVER then
-	hook.Add("TTT2CheckCreditAward", "TTTCSidekickMod", function(_, attacker)
+	hook.Add("TTT2CheckCreditAward", "TTTCSidekickMod", function(victim, attacker)
 		if IsValid(attacker) and attacker:IsPlayer() and attacker:IsActive() and attacker:GetSubRole() == ROLE_SIDEKICK and GetConVar("ttt2_siki_mode"):GetInt()==1 then
 			return false -- prevent awards
 		end
 	end)
 
 	-- CLASSES syncing
-	hook.Add("TTT2UpdateSubrole", "TTTCSidekickMod", function(siki, _, role)
+	hook.Add("TTT2UpdateSubrole", "TTTCSidekickMod", function(siki, oldRole, role)
 		if not TTTC or not siki:IsActive() or role ~= ROLE_SIDEKICK or GetConVar("ttt2_siki_mode"):GetInt()==1 or GetConVar ("ttt2_siki_mode"):GetInt()==2 then return end
 
 		for _, ply in ipairs(player.GetAll()) do
@@ -396,7 +397,7 @@ if SERVER then
 end
 
 if CLIENT then
-	net.Receive("TTT2SikiSyncClasses", function(_)
+	net.Receive("TTT2SikiSyncClasses", function(len)
 		local target = net.ReadEntity()
 		if not IsValid(target) then return end
 
