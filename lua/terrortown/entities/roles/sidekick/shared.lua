@@ -37,6 +37,10 @@ function ROLE:PreInitialize()
 	}
 end
 
+cvars.AddChangeCallback( "ttt2_siki_mode", function(convar, oldValue, newValue)
+	GetRoleByAbbr("siki").preventWin = newValue ~= 3
+end)
+
 hook.Add("TTTUlxDynamicRCVars", "TTTUlxDynamicSikiCVars", function(tbl)
 	tbl[ROLE_SIDEKICK] = tbl[ROLE_SIDEKICK] or {}
 
