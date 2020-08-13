@@ -57,9 +57,9 @@ hook.Add("TTTUlxDynamicRCVars", "TTTUlxDynamicSikiCVars", function(tbl)
 		combobox = true,
 		desc = "Sidekick-Mode (Def. 1)",
 		choices = {
-		"0 = Sidekick doesn't become Jackal and can't win alone, but gets targets",
-		"1 = Sidekick becomes Jackal on Jackals death",
-		"2 = Sidekick doesn't become Jackal but can win alone and gets targets"
+		"0 = Sidekick doesn't become his former teammate and can't win alone, but gets targets",
+		"1 = Sidekick becomes his former teammate upon their death.",
+		"2 = Sidekick doesn't become his former teammate but can win alone and gets targets"
 		},
 		numStart = 1
 	})
