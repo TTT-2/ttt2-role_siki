@@ -256,7 +256,7 @@ if SERVER then
 
 				siki:SetNWEntity("binded_sidekick", nil)
 
-				if enabled then continue end
+				if not enabled then continue end
 
 				local newRole = siki.mateSubRole or (IsValid(mate) and mate:GetSubRole())
 
