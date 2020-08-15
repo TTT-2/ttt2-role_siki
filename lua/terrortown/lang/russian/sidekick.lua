@@ -1,4 +1,4 @@
-L = LANG.GetLanguageTableReference("russian")
+local L = LANG.GetLanguageTableReference("russian")
 
 -- GENERAL ROLE LANGUAGE STRINGS
 L[SIDEKICK.name] = "Сообщник"
