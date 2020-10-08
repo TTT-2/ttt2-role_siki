@@ -20,16 +20,11 @@ if SERVER then
 	util.AddNetworkString("tttSidekickDeagleRefilled")
 	util.AddNetworkString("tttSidekickDeagleMiss")
 	util.AddNetworkString("tttSidekickSameTeam")
-else
-	hook.Add("Initialize", "TTTInitSikiDeagleLang", function()
-		LANG.AddToLanguage("English", "ttt2_weapon_sidekickdeagle_desc", "Shoot a player to make him your sidekick.")
-		LANG.AddToLanguage("Deutsch", "ttt2_weapon_sidekickdeagle_desc", "Schieße auf einen Spieler, um ihn zu deinem Sidekick zu machen.")
-	end)
+end
 
+if CLIENT then
 	SWEP.PrintName = "Sidekick Deagle"
 	SWEP.Author = "Alf21"
-
-	SWEP.Slot = 7
 
 	SWEP.ViewModelFOV = 54
 	SWEP.ViewModelFlip = false
@@ -37,8 +32,9 @@ else
 	SWEP.Category = "Deagle"
 	SWEP.Icon = "vgui/ttt/icon_sidekickdeagle.vtf"
 	SWEP.EquipMenuData = {
-		type = "Weapon",
-		desc = "ttt2_weapon_sidekickdeagle_desc"
+		type = "item_weapon",
+		name = "weapon_sidekickdeagle_name",
+		desc = "weapon_sidekickdeagle_desc"
 	}
 end
 
@@ -205,23 +201,6 @@ hook.Add("LoadedFallbackShops", "SidekickDeagleAddToShop", function()
 end)
 
 if CLIENT then
-	hook.Add("TTT2FinishedLoading", "InitSikiMsgText", function()
-		LANG.AddToLanguage("English", "ttt2_siki_shot", "Successfully shot {name} as sidekick!")
-		LANG.AddToLanguage("Deutsch", "ttt2_siki_shot", "Erfolgreich {name} zum Kumpanen geschossen!")
-
-		LANG.AddToLanguage("English", "ttt2_siki_were_shot", "You were shot as sidekick by {name}!")
-		LANG.AddToLanguage("Deutsch", "ttt2_siki_were_shot", "Du wurdest von {name} zum Kumpanen geschossen!")
-
-		LANG.AddToLanguage("English", "ttt2_siki_sameteam", "You can't shoot someone from your team as sidekick!")
-		LANG.AddToLanguage("Deutsch", "ttt2_siki_sameteam", "Du kannst niemanden aus deinem Team zum Kumpanen schießen!")
-
-		LANG.AddToLanguage("English", "ttt2_siki_ply_killed", "Your sidekick deagle cooldown was reduced by {amount} seconds.")
-		LANG.AddToLanguage("Deutsch", "ttt2_siki_ply_killed", "Deine Sidekick Deagle Wartezeit wurde um {amount} Sekunden reduziert.")
-
-		LANG.AddToLanguage("English", "ttt2_siki_recharged", "Your sidekick deagle has been recharged.")
-		LANG.AddToLanguage("Deutsch", "ttt2_siki_recharged", "Deine Sidekick Deagle wurde wieder aufgefüllt.")
-	end)
-
 	hook.Add("Initialize", "ttt_sidekick_init_status", function()
 		STATUS:RegisterStatus("ttt2_sidekick_deagle_reloading", {
 			hud = Material("vgui/ttt/hud_icon_deagle.png"),
