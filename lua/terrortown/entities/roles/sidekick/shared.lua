@@ -19,9 +19,11 @@ function ROLE:PreInitialize()
 	self.color = Color(0, 0, 0, 255)
 
 	self.abbr = "siki"
-	self.surviveBonus = 1
-	self.scoreKillsMultiplier = 5
-	self.scoreTeamKillsMultiplier = -16
+	self.score.surviveBonusMultiplier = 0.5
+	self.score.timelimitMultiplier = -0.5
+	self.score.killsMultiplier = 2
+	self.score.teamKillsMultiplier = -16
+	self.score.bodyFoundMuliplier = 0
 	self.preventWin = GetConVar("ttt2_siki_mode"):GetInt() ~= 2
 	self.notSelectable = true
 	self.disableSync = true
