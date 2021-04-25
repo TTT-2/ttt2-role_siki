@@ -1,4 +1,4 @@
-local L = LANG.GetLanguageTableReference("italiano")
+local L = LANG.GetLanguageTableReference("it")
 
 -- GENERAL ROLE LANGUAGE STRINGS
 L[SIDEKICK.name] = "Aiutante"
