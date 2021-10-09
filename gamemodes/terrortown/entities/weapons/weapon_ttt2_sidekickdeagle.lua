@@ -270,10 +270,10 @@ if CLIENT then
 		MSTACK:AddMessage(LANG.GetTranslation("ttt2_siki_sameteam"))
 	end)
 else
-	net.Receive("tttSidekickDeagleRefilled", function()
+	net.Receive("tttSidekickDeagleRefilled", function(_, ply)
 		local wep = net.ReadEntity()
-
-		if not IsValid(wep) then return end
+	
+		if not IsValid(wep) or wep:GetClass() ~= "weapon_ttt2_sidekickdeagle" then return end
 
 		wep:SetClip1(1)
 	end)
