@@ -24,17 +24,16 @@ function ROLE:PreInitialize()
 	self.score.killsMultiplier = 2
 	self.score.teamKillsMultiplier = -16
 	self.score.bodyFoundMuliplier = 0
+
 	self.preventWin = GetConVar("ttt2_siki_mode"):GetInt() ~= 2
 	self.notSelectable = true
 	self.disableSync = true
 	self.preventFindCredits = true
-	self.preventKillCredits = true
-	self.preventTraitorAloneCredits = true
 
 	self.defaultEquipment = SPECIAL_EQUIPMENT
 
 	self.conVarData = {
-		credits = 1, -- the starting credits of a specific role
+		credits = 1,
 		shopFallback = SHOP_FALLBACK_TRAITOR
 	}
 end
