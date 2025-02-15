@@ -4,7 +4,7 @@ SWEP.Spawnable = true
 SWEP.AutoSpawnable = false
 SWEP.AdminSpawnable = true
 
-SWEP.HoldType = "pistol"
+SWEP.HoldType = "revolver"
 
 SWEP.AutoSwitchTo = false
 SWEP.AutoSwitchFrom = false
