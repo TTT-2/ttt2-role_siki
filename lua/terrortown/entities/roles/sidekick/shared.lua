@@ -5,10 +5,10 @@ if SERVER then
 
 	resource.AddFile("materials/vgui/ttt/dynamic/roles/icon_siki.vmt")
 
+	CreateConVar("ttt2_siki_preventFindCredits", "1", {FCVAR_NOTIFY, FCVAR_ARCHIVE})
 	CreateConVar("ttt2_siki_protection_time", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE})
+	CreateConVar("ttt2_siki_mode", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE}, "0 = Sidekick doesn't become his former teammate and can't win alone, but gets targets \n 1 = Sidekick becomes his former teammate upon their death. \n 2 = Sidekick doesn't become his former teammate but can win alone and gets targets", 0, 2)
 end
-
-CreateConVar("ttt2_siki_mode", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED}, "0 = Sidekick doesn't become his former teammate and can't win alone, but gets targets \n 1 = Sidekick becomes his former teammate upon their death. \n 2 = Sidekick doesn't become his former teammate but can win alone and gets targets", 0, 2)
 
 local plymeta = FindMetaTable("Player")
 if not plymeta then return end
@@ -28,7 +28,7 @@ function ROLE:PreInitialize()
 	self.preventWin = GetConVar("ttt2_siki_mode"):GetInt() ~= 2
 	self.notSelectable = true
 	self.disableSync = true
-	self.preventFindCredits = true
+	self.preventFindCredits = GetConVar("ttt2_siki_preventFindCredits"):GetBool()
 
 	self.defaultEquipment = SPECIAL_EQUIPMENT
 
@@ -37,56 +37,6 @@ function ROLE:PreInitialize()
 		shopFallback = SHOP_FALLBACK_TRAITOR
 	}
 end
-
-cvars.AddChangeCallback( "ttt2_siki_mode", function(convar, oldValue, newValue)
-	GetRoleByAbbr("siki").preventWin = newValue ~= 2
-end)
-
-hook.Add("TTTUlxDynamicRCVars", "TTTUlxDynamicSikiCVars", function(tbl)
-	tbl[ROLE_SIDEKICK] = tbl[ROLE_SIDEKICK] or {}
-
-	table.insert(tbl[ROLE_SIDEKICK], {
-		cvar = "ttt2_siki_protection_time",
-		slider = true,
-		min = 0,
-		max = 60,
-		desc = "Protection Time for new Sidekick (Def. 1)"
-	})
-
-	table.insert(tbl[ROLE_SIDEKICK], {
-		cvar = "ttt2_siki_mode",
-		combobox = true,
-		desc = "Sidekick-Mode (Def. 1)",
-		choices = {
-		"0 = Sidekick doesn't become his former teammate and can't win alone, but gets targets",
-		"1 = Sidekick becomes his former teammate upon their death.",
-		"2 = Sidekick doesn't become his former teammate but can win alone and gets targets"
-		},
-		numStart = 0
-	})
-
-	table.insert(tbl[ROLE_SIDEKICK], {
-		cvar = "ttt2_siki_deagle_refill",
-		checkbox = true,
-		desc = "The Sidekick Deagle can be refilled when you missed a shot. (Def. 1)"
-	})
-
-	table.insert(tbl[ROLE_SIDEKICK], {
-		cvar = "ttt2_siki_deagle_refill_cd",
-		slider = true,
-		min = 1,
-		max = 300,
-		desc = "Seconds to Refill (Def. 120)"
-	})
-
-	table.insert(tbl[ROLE_SIDEKICK], {
-		cvar = "ttt2_siki_deagle_refill_cd_per_kill",
-		slider = true,
-		min = 1,
-		max = 300,
-		desc = "CD Reduction per Kill (Def. 60)"
-	})
-end)
 
 if SERVER then
 	function ROLE:GiveRoleLoadout(ply, isRoleChange)
@@ -417,4 +367,67 @@ if CLIENT then
 
 		target:SetClass(hr)
 	end)
+
+	function ROLE:AddToSettingsMenu(parent)
+		local form = vgui.CreateTTT2Form(parent, "header_roles_additional")
+
+		form:MakeCheckBox({
+			serverConvar = "ttt2_siki_preventFindCredits",
+			label = "label_siki_preventFindCredits"
+		})
+
+		form:MakeSlider({
+			serverConvar = "ttt2_siki_protection_time",
+			label = "label_siki_protection_time",
+			min = 0,
+			max = 60,
+			decimal = 0
+		})
+
+		form:MakeHelp({
+			label = "help_siki_mode"
+		})
+
+		form:MakeComboBox({
+			serverConvar = "ttt2_siki_mode",
+			label = "label_siki_mode",
+			choices = {
+				{
+					title = LANG.TryTranslation("label_siki_mode_0"),
+					value = 0,
+				},
+				{
+					title = LANG.TryTranslation("label_siki_mode_1"),
+					value = 1,
+				},
+				{
+					title = LANG.TryTranslation("label_siki_mode_2"),
+					value = 2,
+				},
+			},
+		})
+
+		local refill = form:MakeCheckBox({
+			serverConvar = "ttt2_siki_deagle_refill",
+			label = "label_siki_deagle_refill"
+		})
+
+		form:MakeSlider({
+			serverConvar = "ttt2_siki_deagle_refill_cd",
+			label = "label_siki_deagle_refill_cd",
+			min = 1,
+			max = 300,
+			decimal = 0,
+			master = refill,
+		})
+
+		form:MakeSlider({
+			serverConvar = "ttt2_siki_deagle_refill_cd_per_kill",
+			label = "label_siki_deagle_refill_cd_per_kill",
+			min = 1,
+			max = 300,
+			decimal = 0,
+			master = refill,
+		})
+	end
 end
