@@ -5,10 +5,11 @@ if SERVER then
 
 	resource.AddFile("materials/vgui/ttt/dynamic/roles/icon_siki.vmt")
 
-	CreateConVar("ttt2_siki_preventFindCredits", "1", {FCVAR_NOTIFY, FCVAR_ARCHIVE})
 	CreateConVar("ttt2_siki_protection_time", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE})
-	CreateConVar("ttt2_siki_mode", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE}, "0 = Sidekick doesn't become his former teammate and can't win alone, but gets targets \n 1 = Sidekick becomes his former teammate upon their death. \n 2 = Sidekick doesn't become his former teammate but can win alone and gets targets", 0, 2)
 end
+
+CreateConVar("ttt2_siki_mode", 1, {FCVAR_NOTIFY, FCVAR_ARCHIVE}, "0 = Sidekick doesn't become his former teammate and can't win alone, but gets targets \n 1 = Sidekick becomes his former teammate upon their death. \n 2 = Sidekick doesn't become his former teammate but can win alone and gets targets", 0, 2)
+CreateConVar("ttt2_siki_preventFindCredits", "1", {FCVAR_NOTIFY, FCVAR_ARCHIVE})
 
 local plymeta = FindMetaTable("Player")
 if not plymeta then return end
